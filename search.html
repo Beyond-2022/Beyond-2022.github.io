@@ -32,69 +32,95 @@
     <script type="text/javascript">
 
         const myChart = TimelinesChart();
-        var wikiData = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'		// Link to access wiki data SPARQL database
+        //var wikiData = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql'		// Link to access wiki data SPARQL database
 
         const queryString = window.location.search;										// returns: ?subj=...								
 
         const urlParams = new URLSearchParams(queryString);
         const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
 
-        // First SPARQL query for non-star triples
-        // retrieves birth/start date & death/end date
-        var datesQuery = `
-		    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-		    PREFIX wikibase: <http://wikiba.se/ontology#>
-		    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-		    SELECT ?pred ?obj ?pName WHERE {
-  		    	<`+ subject + `> ?pred ?obj.
-  		    	FILTER ( (datatype(?obj) = xsd:dateTime) || (datatype(?obj) = xsd:date) || (datatype(?obj) = xsd:gYear) || (datatype(?obj) = xsd:gYearMonth) ).
-  		    	?x wikibase:directClaim ?pred;
-    	    		rdfs:label ?pName.
-  		    	FILTER((LANG(?pName)) = "en")
-		    }
-		    LIMIT 200`;
 
-        //Second SPARQLStar query
-        // Finds data between birth/start date & death/end date or present date
-        var starQuery = `
-    	    SELECT DISTINCT ?pred ?pName ?obj ?oName ?start ?end WHERE {
-  		    	<`+ subject + `> ?pred ?statement.
-  		    	?statement ?predPS ?obj;
-    	    		pq:P580 ?start.
-  		    	OPTIONAL { ?statement pq:P582 ?end. FILTER(?end >= ?start).}
-  		    	FILTER(STRSTARTS(STR(?predPS), "http://www.wikidata.org/prop/statement/"))
-  		    	FILTER(STRSTARTS(STR(?pred), "http://www.wikidata.org/prop/"))
-  		    	FILTER(STRSTARTS(STR(?statement), "http://www.wikidata.org/entity/statement/"))
-  		    	?x wikibase:claim ?pred;
-    	    		rdfs:label ?pName.
-  		    	FILTER((LANG(?pName)) = "en")
-  		    	?obj rdfs:label ?oName.
-  		    	FILTER((LANG(?oName)) = "en")
-		    }
-		    LIMIT 200`;
-
-        var basicQuery = `
+        //QUERY for Beyond 2022 Database
+        var B2022_query = `
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                PREFIX wikibase: <http://wikiba.se/ontology#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                SELECT ?pred ?obj ?pName ?subjLabel ?subjDescription WHERE {
-                   BIND(<`+ subject + `>  AS ?subj)
-                   ?subj ?pred ?obj.
-                   FILTER((((((DATATYPE(?obj)) = xsd:dateTime) || ((DATATYPE(?obj)) =
-                xsd:date)) || ((DATATYPE(?obj)) = xsd:gYear)) || ((DATATYPE(?obj)) =
-                xsd:gYearMonth)) || (?pred = wdt:P18))
-                   ?x wikibase:directClaim ?pred;
-                     rdfs:label ?pName.
-                   FILTER((LANG(?pName)) = "en")
-                   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-            }
-            LIMIT 200`;
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX crm: <http://erlangen-crm.org/current/>
+            PREFIX b2022: <https://kb.beyond2022.ie/>
 
-        function addMonth(date, month) {
-            var result = new Date(date);
-            result.setMonth(result.getMonth() + month);
-            return result;
-        }
+            select distinct *  #select 'ALL' just to have an overview of all the variables, but you can select only the interesting variables
+            where {
+            VALUES (?event_type) { ( crm:E67_Birth ) ( crm:E69_Death ) } #select timespans only for birth and death events.
+            ?event rdf:type ?event_type ; 
+            #             crm:P4_has_time-span ?timespan;
+            #             (crm:P98_brought_into_life | crm:P93_took_out_of_existence) ?person. #it can be either of them depending on ?event_type.
+            #      ?timespan crm:P82a_begin_of_the_begin ?start_date ; 
+            #                crm:P82b_end_of_the_end ?end_date.
+            #      ?person crm:P1_is_identified_by ?appellation.
+            #      ?appellation rdfs:label ?person_name.
+            #      FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). #filter to get only the normalised surname+forename labels for ?person_name.
+                } 
+            ORDER BY ?start_date
+            LIMIT 100
+        `;
+
+
+        // // First SPARQL query for non-star triples
+        // // retrieves birth/start date & death/end date
+        // var datesQuery = `
+		//     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+		//     PREFIX wikibase: <http://wikiba.se/ontology#>
+		//     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+		//     SELECT ?pred ?obj ?pName WHERE {
+  		//     	<`+ subject + `> ?pred ?obj.
+  		//     	FILTER ( (datatype(?obj) = xsd:dateTime) || (datatype(?obj) = xsd:date) || (datatype(?obj) = xsd:gYear) || (datatype(?obj) = xsd:gYearMonth) ).
+  		//     	?x wikibase:directClaim ?pred;
+    	//     		rdfs:label ?pName.
+  		//     	FILTER((LANG(?pName)) = "en")
+		//     }
+		//     LIMIT 200`;
+
+        // //Second SPARQLStar query
+        // // Finds data between birth/start date & death/end date or present date
+        // var starQuery = `
+    	//     SELECT DISTINCT ?pred ?pName ?obj ?oName ?start ?end WHERE {
+  		//     	<`+ subject + `> ?pred ?statement.
+  		//     	?statement ?predPS ?obj;
+    	//     		pq:P580 ?start.
+  		//     	OPTIONAL { ?statement pq:P582 ?end. FILTER(?end >= ?start).}
+  		//     	FILTER(STRSTARTS(STR(?predPS), "http://www.wikidata.org/prop/statement/"))
+  		//     	FILTER(STRSTARTS(STR(?pred), "http://www.wikidata.org/prop/"))
+  		//     	FILTER(STRSTARTS(STR(?statement), "http://www.wikidata.org/entity/statement/"))
+  		//     	?x wikibase:claim ?pred;
+    	//     		rdfs:label ?pName.
+  		//     	FILTER((LANG(?pName)) = "en")
+  		//     	?obj rdfs:label ?oName.
+  		//     	FILTER((LANG(?oName)) = "en")
+		//     }
+		//     LIMIT 200`;
+
+        // var basicQuery = `
+        //     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        //         PREFIX wikibase: <http://wikiba.se/ontology#>
+        //         PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        //         SELECT ?pred ?obj ?pName ?subjLabel ?subjDescription WHERE {
+        //            BIND(<`+ subject + `>  AS ?subj)
+        //            ?subj ?pred ?obj.
+        //            FILTER((((((DATATYPE(?obj)) = xsd:dateTime) || ((DATATYPE(?obj)) =
+        //         xsd:date)) || ((DATATYPE(?obj)) = xsd:gYear)) || ((DATATYPE(?obj)) =
+        //         xsd:gYearMonth)) || (?pred = wdt:P18))
+        //            ?x wikibase:directClaim ?pred;
+        //              rdfs:label ?pName.
+        //            FILTER((LANG(?pName)) = "en")
+        //            SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        //     }
+        //     LIMIT 200`;
+
+        // function addMonth(date, month) {
+        //     var result = new Date(date);
+        //     result.setMonth(result.getMonth() + month);
+        //     return result;
+        // }
 
         var queryName;
         d3.sparql(wikiData, datesQuery).then(function (birthData) {
