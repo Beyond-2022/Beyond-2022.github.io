@@ -33,7 +33,7 @@
 
     <script type="text/javascript">
 
-        var b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+        var b2022_URL =  'https://localhost:3030/Beyond_2022/query';
         // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
 
         const queryString = window.location.search;										// returns: ?subj=...								
@@ -208,6 +208,7 @@
                     }
                     console.log(queryCode);
                     window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');
+
                 }
 
 
@@ -295,10 +296,12 @@
         
         
         <input type="button" class="searchbar-button" id="btn" value="Submit"
+
             onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" />
         
         <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
             onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+
     </div>
     <br> </br>
     <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
