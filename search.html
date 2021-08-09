@@ -27,6 +27,7 @@
         href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
     <link rel="stylesheet" href="css/stylesheet.css">
+    <link rel="stylesheet" href="css/searchButton.css">
 
 
 
@@ -41,52 +42,7 @@
         
         const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
 
-        //var B2022_localhost_link = 'http://localhost:3030/Beyond2022_DB/query';
-        
-  //       var B2022_query = `
-  //       PREFIX crm: <http://www.cidoc-crm.org/cidoc-crm/>
-        // PREFIX crm_cur: <http://erlangen-crm.org/current/>
-        // PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-        // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        // PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-        // SELECT ?subject ?predicate ?object
-  //       #Comment
-        // WHERE {
-  // 			?subject ?predicate crm_cur:E52_Time-Span 
-        // }
-        // LIMIT 100
-
-  //       `;
-
-
-          var  B2022_death_query = `
-                #Query to only get death dates of people
-                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                PREFIX crm: <http://erlangen-crm.org/current/>
-                PREFIX b2022: <https://kb.beyond2022.ie/>
-                PREFIX vt: <https://kb.virtualtreasury.ie/>
-
-                select distinct ?person_name ?start_date ?end_date ?event
-                where {
-                  #Only get Death Event
-                  ?event rdf:type crm:E69_Death ; 
-                         crm:P4_has_time-span ?timespan;
-                         crm:P93_took_out_of_existence ?person.
-
-                  #Get begin of the begin of birth date and end of end of death event
-                  ?timespan crm:P82a_begin_of_the_begin ?start_date;
-                            crm:P82b_end_of_the_end ?end_date.
-                  
-                  ?person crm:P1_is_identified_by ?appellation.
-                  ?appellation rdfs:label ?person_name.
-                  FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
-                } 
-                ORDER BY ?start_date
-                LIMIT 50
-                `;
+       
 
 
         var B2022_query = `
@@ -117,7 +73,7 @@
             FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
         } 
         ORDER BY ?start_date
-        LIMIT 100 # <--- on virtuoso.adaptcentre.ie it returns only 36 results, on localhost (newer and richer KG) it returns 10856 results.
+        LIMIT 50 # <--- on virtuoso.adaptcentre.ie it returns only 36 results, on localhost (newer and richer KG) it returns 10856 results.
 
                 `;
 
@@ -194,7 +150,8 @@
 
                                 return {
                                     timeRange: [start, end],        // shows start date to end date on hover
-                                    val: data[index].pName,         // shows pName on hover
+                                    val: data[index].oName,         // shows pName on hover
+                                    // val: "Lifetime",         // shows pName on hover
                                     duartion: data[index].start + " - " + data[index].end
                                     //labelVal: is optional - only displayed in the labels
                                 };
@@ -286,26 +243,28 @@
     </header>
     <div class="page-heading">
         <h1 class="entry-title"></h1>
-        <h3 style="color: white;">How to Search?</h3>
-        <h5 style="color: white;">Enter a Resource name & choose one of the given options. Click on “Submit” to draw the
-            timeline.</h5>
-        <h5 style="color: white;">Click on the timeline bars to jump to a new timeline. </h5>
-        <h5 style="color: white;">Select the area with your cursor to zoom-in on the timeline.</h5>
+        <h3 style="color: white;">What am I seeing?</h3>
+        <h5 style="color: white;">Using the Record Treasury at the Public Record Office of Ireland stored seven centuries of Irish records, </h5>
+        <h5 style="color: white;">you see the life span of people in the form of a timelines chart. </h5>
+        <!-- <h5 style="color: white;">Select the area with your cursor to zoom-in on the timeline.</h5> -->
         <ul class="entry-breadcrumb">
         </ul>
     </div>
     <br> </br>
-    <div id="Search" class="searchbar">
+    <!-- <div id="Search" class="searchbar">
         <input type="text" class="searchbox" placeholder="Enter a query..." id="text"
             style="width: 60%; height: 35px " />
         <input type='hidden' id='textID' />
-       
+        -->
 
         
-        
-        <input type="button" class="searchbar-button" id="btn" value="Submit"
+        <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
+            onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');">
+              Refresh
+            </sub>
+        <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
 
-            onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" />
+            onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
         
         <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
             onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
