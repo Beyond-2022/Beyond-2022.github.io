@@ -33,7 +33,7 @@
 
     <script type="text/javascript">
 
-        var b2022_URL =  'https://localhost:3030/Beyond_2022/query';
+        var b2022_URL =  'http://localhost:3030/Beyond_2022/query';
         // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
 
         const queryString = window.location.search;										// returns: ?subj=...								
@@ -89,32 +89,39 @@
                 `;
 
 
-          var B2022_query = `
-                   PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    PREFIX crm: <http://erlangen-crm.org/current/>
-                    PREFIX b2022: <https://kb.beyond2022.ie/>
+        var B2022_query = `
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX crm: <http://erlangen-crm.org/current/>
+        PREFIX b2022: <https://kb.beyond2022.ie/>
+        PREFIX vt: <https://kb.virtualtreasury.ie/>
 
-                    select distinct *
-                    where {
-                      VALUES (?event_type) { ( crm:E67_Birth ) ( crm:E69_Death ) } 
-                      ?event rdf:type ?event_type ; 
-                             crm:P4_has_time-span ?timespan;
-                             ?death_Birth ?person.
-                        VALUES (?death_Birth) { ( crm:P98_brought_into_life ) ( crm:P93_took_out_of_existence ) } 
-                      ?timespan crm:P82a_begin_of_the_begin ?start_date ; 
-                                crm:P82b_end_of_the_end ?end_date.
-                      ?person crm:P1_is_identified_by ?appellation.
-                      ?appellation rdfs:label ?person_name.
-                      FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
-                    } 
-                    ORDER BY ?start_date
-                    LIMIT 100
+        select distinct ?person ?person_name ?start_date ?end_date
+        where {
+            #Get Birth and Death events and time-spans for each person
+            ?birth rdf:type crm:E67_Birth;
+                crm:P4_has_time-span ?timespanB;
+                crm:P98_brought_into_life ?person. 
+            ?death rdf:type crm:E69_Death;
+                crm:P4_has_time-span ?timespanD;
+                crm:P93_took_out_of_existence ?person.
+
+            #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+            ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+            ?timespanD crm:P82b_end_of_the_end ?end_date.
+                    
+            #Get appellation (surname-forename) of person
+            ?person crm:P1_is_identified_by ?appellation.
+            ?appellation rdfs:label ?person_name.
+            FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+        } 
+        ORDER BY ?start_date
+        LIMIT 100 # <--- on virtuoso.adaptcentre.ie it returns only 36 results, on localhost (newer and richer KG) it returns 10856 results.
 
                 `;
 
-        var queryName = "Death Dates";
+        var queryName = "Life Timeline";
         function addMonth(date, month) 
         {
             var result = new Date(date);
@@ -123,14 +130,15 @@
         }
 
  
-    d3.sparql(b2022_URL, B2022_death_query).then(function (data) {
+    d3.sparql(b2022_URL, B2022_query).then(function (data) {
                 
                  console.log(data);
                 
                 data.forEach(function (arrayItem) {            // Edit deathData to have start & end date with oName
                 if (typeof arrayItem === "object") {
                     arrayItem["start"] = arrayItem.start_date;         //start is obj date
-                    arrayItem["end"] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
+                    // arrayItem["end"] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
+                     arrayItem["end"] = arrayItem.end_date;
                     arrayItem["oName"] = arrayItem.person_name;      //oName is pName
                 }
             });
