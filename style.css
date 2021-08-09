@@ -79,7 +79,7 @@
   .PositionVideo{
     display:block;
     border: 5px solid;
-    border-color: #d43526 #61cb85 #378ac5 #52966a;
+    border-color: #c7eb29 #61cb85 #378ac5 #52966a;
     top: 0; right: 0; /* confuse it i guess */
     bottom: 0; left: 0;
     margin: auto;
