@@ -52,8 +52,10 @@
         PREFIX crm: <http://erlangen-crm.org/current/>
         PREFIX b2022: <https://kb.beyond2022.ie/>
         PREFIX vt: <https://kb.virtualtreasury.ie/>
+        PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
 
-        select distinct ?person ?person_name ?start_date ?end_date
+        select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
+        
         where {
             #Get Birth and Death events and time-spans for each person
             ?birth rdf:type crm:E67_Birth;
@@ -71,9 +73,15 @@
             ?person crm:P1_is_identified_by ?appellation.
             ?appellation rdfs:label ?person_name.
             FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+        
+            ?person vt_ont:DIB_area_of_interest ?aoi .
+            ?aoi crm:P1_is_identified_by ?aoi_app .
+            ?aoi_app rdfs:label ?aoi_label .
         } 
         ORDER BY ?start_date
-        LIMIT 50 # <--- on virtuoso.adaptcentre.ie it returns only 36 results, on localhost (newer and richer KG) it returns 10856 results.
+        LIMIT 100 
+
+
 
                 `;
 
@@ -96,6 +104,7 @@
                     // arrayItem["end"] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
                      arrayItem["end"] = arrayItem.end_date;
                     arrayItem["oName"] = arrayItem.person_name;      //oName is pName
+                    arrayItem["pName"] = arrayItem.aoi_label;
                 }
             });
 
@@ -150,7 +159,8 @@
 
                                 return {
                                     timeRange: [start, end],        // shows start date to end date on hover
-                                    val: data[index].oName,         // shows pName on hover
+                                    val: data[index].pName,         // shows pName on hover
+                                    //val: "Interests: "+ data[index].pName,         // shows pName on hover
                                     // val: "Lifetime",         // shows pName on hover
                                     duartion: data[index].start + " - " + data[index].end
                                     //labelVal: is optional - only displayed in the labels
@@ -159,7 +169,8 @@
                         }
                     }
                 }                             //red      orange      yellow      green     brown      purple      pink      blue
-                let scale = d3.scaleOrdinal(['#E67B7B', '#FF8F00', '#FFF300', '#6AD96A', '#9D6F6F', '#726AD9', '#C16AD9', '#6A8AD9']);    // red, orange, yellow, green, blue, lilac, purple
+                // let scale = d3.scaleOrdinal(['#E67B7B', '#FF8F00', '#FFF300', '#6AD96A', '#9D6F6F', '#726AD9', '#C16AD9', '#6A8AD9']);    // red, orange, yellow, green, blue, lilac, purple
+                let scale = d3.scaleOrdinal(['#dff32a', '#78850a', '#70050a', '#0a8575', '#3867e7', '#f55e83', '#e4990f', '#e46f0f']);
 
                 function segmentClick(segment) {
                     console.log(segment.target.__data__.label);
