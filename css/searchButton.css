@@ -4,6 +4,9 @@ body {
   transform: rotateX(0.003deg);
   height: 100vh;
   color: #fff;
+}.range-slider {
+  position: relative;
+  height: 280px;
 }
 sub {
   position: relative;
