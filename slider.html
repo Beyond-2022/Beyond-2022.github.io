@@ -27,9 +27,12 @@
     
     
     <!--Plugin CSS file with desired skin-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css"/>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css"/> -->
     
-    <script src="https://dgraux.github.io/SPARQL-hash/sweetalert.min.js"></script>
+    <!-- Stylesheet and Scripts for slider -->
+    <link rel="stylesheet" href="css/RangeSlider.min.css">
+    <script src="assets/js/sweetalert.min.js"></script>
+
     <style>
         .swal-title {
             margin: 0px;
@@ -68,6 +71,7 @@
             console.log("To = "+to);
             
             var B2022_explore_query = `
+        
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -76,7 +80,7 @@
             PREFIX vt: <https://kb.virtualtreasury.ie/>
             PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
             
-            select distinct  ?person_name ?start_date ?end_date ?aoi_label
+            select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label
             
             where {
                 #Get Birth and Death events and time-spans for each person
@@ -90,7 +94,7 @@
                 #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
                 ?timespanB crm:P82a_begin_of_the_begin ?start_date.
                 ?timespanD crm:P82b_end_of_the_end ?end_date.
-                FILTER (?start_date >= "`+from+`-01-01"^^xsd:date).
+                FILTER (?start_date > "`+from+`-01-01"^^xsd:date).
                 FILTER (?start_date <= "`+to+`-01-01"^^xsd:date).
                 
                 
@@ -102,6 +106,7 @@
                 ?person vt_ont:DIB_area_of_interest ?aoi .
                 ?aoi crm:P1_is_identified_by ?aoi_app .
                 ?aoi_app rdfs:label ?aoi_label .
+                BIND ( STR ( ?person ) AS ?normalized_uri ).
             } 
             ORDER BY ?start_date
             `   
@@ -303,8 +308,8 @@
                                     </li>
                                     <li><a href="something_fun.html">Find by Century</a>
                                     </li>
-                                    <!-- <li><a href="compare.html">Compare</a>
-                                    </li> -->
+                                    <li><a href="slider.html">Find by Years</a>
+                                    </li>
                                 </ul>
                             </nav>
                         </div>
@@ -360,7 +365,7 @@
                     <!-- Places slider on the html page -->
                     <input type="text" class="js-range-slider" value="" />
                 </div>
-                <div class="extra-controls">
+                <div class="extra-controls" style="margin-left: 5%;">
                     
                     <!-- From and To fields on the html page -->
                     <input type="text" class="js-input-from" value="0" />   
@@ -391,8 +396,8 @@
                     $inputFrom = $(".js-input-from"),
                     $inputTo = $(".js-input-to"),
                     instance,
-                    min = 5,
-                    max = 1687,
+                    min = 121,
+                    max = 2021,
                     from = 0,
                     to = 0;
                     
