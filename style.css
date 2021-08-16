@@ -36,6 +36,7 @@
     float: center;
     width: auto;
     height: auto;
+    position: relative;
   }
 
   .searchbar input[type=text] {
@@ -55,6 +56,7 @@
     cursor: pointer;
     border-radius: 10%;
     border: 1px solid rgb(14, 13, 13); 
+    position: relative;
   }
 
   .searchbar-button:hover {
@@ -153,4 +155,18 @@
   .fun-img:hover{
     opacity: 80%;
     transform: scale(1.1);
+  }
+
+  .center-searchbar-button{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 30%; 
+    float: center;
+    /* width: auto; */
+    height: auto;
+    position: relative;
+    border: 1px solid rgb(195, 236, 11);
+    opacity: 70%;
+    font-size: 17px;
   }
