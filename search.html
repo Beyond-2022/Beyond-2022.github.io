@@ -58,7 +58,7 @@
             PREFIX vt: <https://kb.virtualtreasury.ie/>
             PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
             
-            select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
+            select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label
             
             where {
                 #Get Birth and Death events and time-spans for each person
@@ -81,9 +81,10 @@
                 ?person vt_ont:DIB_area_of_interest ?aoi .
                 ?aoi crm:P1_is_identified_by ?aoi_app .
                 ?aoi_app rdfs:label ?aoi_label .
+				BIND ( STR ( ?person ) AS ?normalized_uri ).
             } 
             ORDER BY ?start_date
-            LIMIT 100 
+            LIMIT 2000 
             
             
             
