@@ -369,11 +369,14 @@
                     (These are just to show that the input boxes and the slider are "connected".)<br>
                     By default the maximum year interval is supposed to be 600 years, but it can be overwritten using the input boxes above... (however, it will throw an alert message when clicking on the search button)<br>
                     
+                </div>    
+                <br>    
+                <div>
                     <!-- Search Button -->
-                    <button onclick="open_dialog($('.js-input-from').prop('value'),$('.js-input-to').prop('value'))">Search...</button>
+                    <button class = "center-searchbar-button"  onclick="open_dialog($('.js-input-from').prop('value'),$('.js-input-to').prop('value'))">Explore</button>
                     
                 </div>
-                
+                <br>
                 <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
                 </div>
                 
