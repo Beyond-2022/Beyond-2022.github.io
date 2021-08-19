@@ -129,6 +129,31 @@
             }
             
             
+
+            function addMonth(date, month) 
+            {
+                var result = new Date(date);
+                result.setMonth(result.getMonth() + month);
+                return result;
+            }
+            
+            function renameFiles(arr){
+                var count = {};
+                arr.forEach(function(x,i) {
+                    
+                    if ( arr.indexOf(x) !== i ) {
+                        var c = x in count ? count[x] = count[x] + 1 : count[x] = 1;
+                        var j = c + 1;
+                        var k = x + '(' + j + ')';
+                        
+                        while( arr.indexOf(k) !== -1 ) k = x + '(' + (++j) + ')';
+                        arr[i] = k;
+                    }
+                });
+                return arr;
+            }
+
+
             d3.sparql(b2022_URL, B2022_explore_query).then(function (data) {
                 
                 console.log(data);
@@ -162,6 +187,55 @@
                     const sortedData = data.sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
                     data = sortedData;
                     
+
+
+                    function getFields(input, field) {
+                        var output = [];
+                        for (var i=0; i < input.length ; ++i)
+                        output.push(input[i][field]);
+                        return output;
+                    }
+                    
+                    var data_names = getFields(data, "oName");
+                    // console.log(data_names);
+                    var sorted_names = renameFiles(data_names);
+                    // console.log(sorted_names);
+
+                    // var data_person_names = getFields(data, "person_name");
+                    // // console.log(data_names);
+                    // var sorted_person_names = renameFiles(data_person_names);
+                    
+                    result = data.map(function(currentObject, index) {
+                            return {
+                                    aoi_label: currentObject.aoi_label,
+                                    end:currentObject.end,
+                                    end_date:currentObject.end_date,
+                                    normalized_uri:currentObject.normalized_uri,
+                                    pName:currentObject.pName,
+                                    start:currentObject.start,
+                                    start_date:currentObject.start_date,
+                                    uriName:currentObject.uriName,
+                                    person_name:currentObject.person_name,
+                                    // person_name:sorted_person_names[currentObject],
+                                    oName:sorted_names[index]
+                            
+                            
+                                };
+                            });
+                            console.log(result);
+                            // data.person_name = renameFiles(data.person_name);
+                            data = result;
+                            
+                            // console.log(data);
+                            // data = sorted_data;
+                            // const sorted_data = renameFiles(data);
+
+
+
+
+
+
+
                     return [...Array(NGROUPS).keys()].map(i => ({
                         //group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
                         group: queryName,
