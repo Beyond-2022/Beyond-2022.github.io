@@ -32,7 +32,7 @@
     <!-- Stylesheet and Scripts for slider -->
     <link rel="stylesheet" href="css/RangeSlider.min.css">
     <script src="assets/js/sweetalert.min.js"></script>
-
+    
     <style>
         .swal-title {
             margin: 0px;
@@ -70,54 +70,114 @@
             console.log("From = "+from);
             console.log("To = "+to);
             
-            var B2022_explore_query = `
-        
-            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX crm: <http://erlangen-crm.org/current/>
-            PREFIX b2022: <https://kb.beyond2022.ie/>
-            PREFIX vt: <https://kb.virtualtreasury.ie/>
-            PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
             
-            select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label
             
-            where {
-                #Get Birth and Death events and time-spans for each person
-                ?birth rdf:type crm:E67_Birth;
-                crm:P4_has_time-span ?timespanB;
-                crm:P98_brought_into_life ?person. 
-                ?death rdf:type crm:E69_Death;
-                crm:P4_has_time-span ?timespanD;
-                crm:P93_took_out_of_existence ?person.
-                
-                #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
-                ?timespanB crm:P82a_begin_of_the_begin ?start_date.
-                ?timespanD crm:P82b_end_of_the_end ?end_date.
-                FILTER (?start_date > "`+from+`-01-01"^^xsd:date).
-                FILTER (?start_date <= "`+to+`-01-01"^^xsd:date).
-                
-                
-                #Get appellation (surname-forename) of person
-                ?person crm:P1_is_identified_by ?appellation.
-                ?appellation rdfs:label ?person_name.
-                FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
-                
-                ?person vt_ont:DIB_area_of_interest ?aoi .
-                ?aoi crm:P1_is_identified_by ?aoi_app .
-                ?aoi_app rdfs:label ?aoi_label .
-                BIND ( STR ( ?person ) AS ?normalized_uri ).
-            } 
-            ORDER BY ?start_date
-            `   
             
-            var b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+            // Default SPARQL endpoint = http://virtuoso.adaptcentre.ie/sparql/
+            // TO have localhost as an endpoint, add ?subj=http://localhost:3030/Beyond_2022/query to the URL
             
             
             const queryString = window.location.search;										// returns: ?subj=...								
             const urlParams = new URLSearchParams(queryString);
             
-            const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
+            const subject = urlParams.get('subj');	
+            console.log(subject);
+            
+            var b2022_URL;
+            var B2022_explore_query;
+            
+            if(subject == null || subject == "http://virtuoso.adaptcentre.ie/sparql/"){     // SPARQL endpoint = Virtuoso
+                b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/';    
+                B2022_explore_query = `
+                
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX crm: <http://erlangen-crm.org/current/>
+                PREFIX b2022: <https://kb.beyond2022.ie/>
+                PREFIX vt: <https://kb.virtualtreasury.ie/>
+                PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                PREFIX b2022_ont: <https://kb.beyond2022.ie/ontology#>
+                
+                #select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
+                select *
+                from <http://beyond2022.ie> # <--- remove this if running the query on localhost! Keep only if testing it on virtuoso.adaptcentre.ie
+                where {
+                    #Get Birth and Death events and time-spans for each person
+                    ?birth rdf:type crm:E67_Birth;
+                    crm:P4_has_time-span ?timespanB;
+                    crm:P98_brought_into_life ?person. 
+                    ?death rdf:type crm:E69_Death;
+                    crm:P4_has_time-span ?timespanD;
+                    crm:P93_took_out_of_existence ?person.
+                    
+                    #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                    ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                    ?timespanD crm:P82b_end_of_the_end ?end_date.
+                    FILTER (?start_date > "`+from+`-01-01"^^xsd:date).
+                    FILTER (?start_date <= "`+to+`-01-01"^^xsd:date).
+                    
+                    #Get appellation (surname-forename) of person
+                    ?person crm:P1_is_identified_by ?appellation.
+                    ?appellation rdfs:label ?person_name.
+                    FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                    
+                    
+                    BIND(?person_name as ?aoi_label).
+                    #?person b2022_ont:DIB_area_of_interest ?aoi .
+                    #?aoi crm:P1_is_identified_by ?aoi_app .
+                    #?aoi_app rdfs:label ?aoi_label .
+                } 
+                ORDER BY ?start_date
+                LIMIT 100 
+                `   
+                
+                
+            }
+            else{   // SPARQL endpoint = localhost:3030
+                b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+                B2022_explore_query = `
+                
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX crm: <http://erlangen-crm.org/current/>
+                PREFIX b2022: <https://kb.beyond2022.ie/>
+                PREFIX vt: <https://kb.virtualtreasury.ie/>
+                PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                
+                select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label
+                
+                where {
+                    #Get Birth and Death events and time-spans for each person
+                    ?birth rdf:type crm:E67_Birth;
+                    crm:P4_has_time-span ?timespanB;
+                    crm:P98_brought_into_life ?person. 
+                    ?death rdf:type crm:E69_Death;
+                    crm:P4_has_time-span ?timespanD;
+                    crm:P93_took_out_of_existence ?person.
+                    
+                    #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                    ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                    ?timespanD crm:P82b_end_of_the_end ?end_date.
+                    FILTER (?start_date > "`+from+`-01-01"^^xsd:date).
+                    FILTER (?start_date <= "`+to+`-01-01"^^xsd:date).
+                    
+                    
+                    #Get appellation (surname-forename) of person
+                    ?person crm:P1_is_identified_by ?appellation.
+                    ?appellation rdfs:label ?person_name.
+                    FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                    
+                    ?person vt_ont:DIB_area_of_interest ?aoi .
+                    ?aoi crm:P1_is_identified_by ?aoi_app .
+                    ?aoi_app rdfs:label ?aoi_label .
+                    BIND ( STR ( ?person ) AS ?normalized_uri ).
+                } 
+                ORDER BY ?start_date
+                `   
+            }
+            
             
             
             var queryName = "Life Timeline";
@@ -129,7 +189,7 @@
             }
             
             
-
+            
             function addMonth(date, month) 
             {
                 var result = new Date(date);
@@ -152,8 +212,8 @@
                 });
                 return arr;
             }
-
-
+            
+            
             d3.sparql(b2022_URL, B2022_explore_query).then(function (data) {
                 
                 console.log(data);
@@ -187,8 +247,8 @@
                     const sortedData = data.sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
                     data = sortedData;
                     
-
-
+                    
+                    
                     function getFields(input, field) {
                         var output = [];
                         for (var i=0; i < input.length ; ++i)
@@ -200,42 +260,42 @@
                     // console.log(data_names);
                     var sorted_names = renameFiles(data_names);
                     // console.log(sorted_names);
-
+                    
                     // var data_person_names = getFields(data, "person_name");
                     // // console.log(data_names);
                     // var sorted_person_names = renameFiles(data_person_names);
                     
                     result = data.map(function(currentObject, index) {
-                            return {
-                                    aoi_label: currentObject.aoi_label,
-                                    end:currentObject.end,
-                                    end_date:currentObject.end_date,
-                                    normalized_uri:currentObject.normalized_uri,
-                                    pName:currentObject.pName,
-                                    start:currentObject.start,
-                                    start_date:currentObject.start_date,
-                                    uriName:currentObject.uriName,
-                                    person_name:currentObject.person_name,
-                                    // person_name:sorted_person_names[currentObject],
-                                    oName:sorted_names[index]
+                        return {
+                            aoi_label: currentObject.aoi_label,
+                            end:currentObject.end,
+                            end_date:currentObject.end_date,
+                            normalized_uri:currentObject.normalized_uri,
+                            pName:currentObject.pName,
+                            start:currentObject.start,
+                            start_date:currentObject.start_date,
+                            uriName:currentObject.uriName,
+                            person_name:currentObject.person_name,
+                            // person_name:sorted_person_names[currentObject],
+                            oName:sorted_names[index]
                             
                             
-                                };
-                            });
-                            console.log(result);
-                            // data.person_name = renameFiles(data.person_name);
-                            data = result;
-                            
-                            // console.log(data);
-                            // data = sorted_data;
-                            // const sorted_data = renameFiles(data);
-
-
-
-
-
-
-
+                        };
+                    });
+                    console.log(result);
+                    // data.person_name = renameFiles(data.person_name);
+                    data = result;
+                    
+                    // console.log(data);
+                    // data = sorted_data;
+                    // const sorted_data = renameFiles(data);
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     return [...Array(NGROUPS).keys()].map(i => ({
                         //group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
                         group: queryName,
@@ -481,8 +541,8 @@
                         grid: true,
                         min: min,
                         max: max,
-                        from: 310,
-                        to: 510,
+                        from: 1310,
+                        to: 1730,
                         drag_interval: true,
                         min_interval: null,
                         max_interval: 600,

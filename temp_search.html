@@ -34,7 +34,7 @@
     
     <script type="text/javascript">
         
-        var b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+        var b2022_URL;
         // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
         
         const queryString = window.location.search;										// returns: ?subj=...								
@@ -42,12 +42,18 @@
         
         const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
         
+        //subject can be either
+        // 'http://virtuoso.adaptcentre.ie/sparql/'
+        // OR
+        // 'http://localhost:3030/Beyond_2022/query'
+        
         
         var B2022_query; 
         // if(localStorage.getItem("typeOfQuery") == null){}
         console.log("Subject = "+ subject);
         if(subject === "http://localhost:3030/Beyond_2022/query"){
             
+            b2022_URL =  'http://localhost:3030/Beyond_2022/query';
             
             B2022_query = `
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
@@ -91,59 +97,102 @@
             
             
             `;
+        }
+        else if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){
+            b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/'
+
+            B2022_query =`
+                    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    PREFIX crm: <http://erlangen-crm.org/current/>
+                    PREFIX b2022: <https://kb.beyond2022.ie/>
+                    PREFIX vt: <https://kb.virtualtreasury.ie/>
+                    PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                    PREFIX b2022_ont: <https://kb.beyond2022.ie/ontology#>
+                    
+                    #select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
+                    select *
+                    from <http://beyond2022.ie> # <--- remove this if running the query on localhost! Keep only if testing it on virtuoso.adaptcentre.ie
+                    where {
+                        #Get Birth and Death events and time-spans for each person
+                        ?birth rdf:type crm:E67_Birth;
+                        crm:P4_has_time-span ?timespanB;
+                        crm:P98_brought_into_life ?person. 
+                        ?death rdf:type crm:E69_Death;
+                        crm:P4_has_time-span ?timespanD;
+                        crm:P93_took_out_of_existence ?person.
+                        
+                        #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                        ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                        ?timespanD crm:P82b_end_of_the_end ?end_date.
+                        
+                        #Get appellation (surname-forename) of person
+                        ?person crm:P1_is_identified_by ?appellation.
+                        ?appellation rdfs:label ?person_name.
+                        FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                        
+
+                        BIND(?person_name as ?aoi_label).
+                        #?person b2022_ont:DIB_area_of_interest ?aoi .
+                        #?aoi crm:P1_is_identified_by ?aoi_app .
+                        #?aoi_app rdfs:label ?aoi_label .
+                    } 
+                    ORDER BY ?start_date
+                    LIMIT 100 
+                    
+                    
+                    `
+
         }  
-        // else if(subject === "http://localhost:3030/Beyond_2022/query/0300-0399"){
+        //  else if(subject === "http://localhost:3030/Beyond_2022/query/0300-0399"){
             else{    
+                
+                b2022_URL =  'http://localhost:3030/Beyond_2022/query';
                 var start_year = subject.substring(40, 44);
                 var end_year = subject.substring(45, 49);
                 console.log("Start Year = "+start_year);
                 console.log("End Year = "+end_year); 
-                // B2022_query = `
-                // PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                // PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                // PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                // PREFIX crm: <http://erlangen-crm.org/current/>
-                // PREFIX b2022: <https://kb.beyond2022.ie/>
-                // PREFIX vt: <https://kb.virtualtreasury.ie/>
-                // PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                B2022_query = `
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX crm: <http://erlangen-crm.org/current/>
+                PREFIX b2022: <https://kb.beyond2022.ie/>
+                PREFIX vt: <https://kb.virtualtreasury.ie/>
+                PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
                 
-                // select distinct  ?person_name ?start_date ?end_date ?aoi_label
+                select distinct  ?person_name ?start_date ?end_date ?aoi_label
                 
-                // where {
-                    //     #Get Birth and Death events and time-spans for each person
-                    //     ?birth rdf:type crm:E67_Birth;
-                    //     crm:P4_has_time-span ?timespanB;
-                    //     crm:P98_brought_into_life ?person. 
-                    //     ?death rdf:type crm:E69_Death;
-                    //     crm:P4_has_time-span ?timespanD;
-                    //     crm:P93_took_out_of_existence ?person.
+                where {
+                        #Get Birth and Death events and time-spans for each person
+                        ?birth rdf:type crm:E67_Birth;
+                        crm:P4_has_time-span ?timespanB;
+                        crm:P98_brought_into_life ?person. 
+                        ?death rdf:type crm:E69_Death;
+                        crm:P4_has_time-span ?timespanD;
+                        crm:P93_took_out_of_existence ?person.
                     
-                    //     #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
-                    //     ?timespanB crm:P82a_begin_of_the_begin ?start_date.
-                    //     ?timespanD crm:P82b_end_of_the_end ?end_date.
-                    //     FILTER (?start_date > "`+start_year+`-01-01"^^xsd:date).
-                    //     FILTER (?start_date <= "`+end_year+`-01-01"^^xsd:date).
+                        #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                        ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                        ?timespanD crm:P82b_end_of_the_end ?end_date.
+                        FILTER (?start_date > "`+start_year+`-01-01"^^xsd:date).
+                        FILTER (?start_date <= "`+end_year+`-01-01"^^xsd:date).
                     
                     
-                    //     #Get appellation (surname-forename) of person
-                    //     ?person crm:P1_is_identified_by ?appellation.
-                    //     ?appellation rdfs:label ?person_name.
-                    //     FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                        #Get appellation (surname-forename) of person
+                        ?person crm:P1_is_identified_by ?appellation.
+                        ?appellation rdfs:label ?person_name.
+                        FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
                     
-                    //     ?person vt_ont:DIB_area_of_interest ?aoi .
-                    //     ?aoi crm:P1_is_identified_by ?aoi_app .
-                    //     ?aoi_app rdfs:label ?aoi_label .
-                    // } 
-                    // ORDER BY ?start_date
+                        ?person vt_ont:DIB_area_of_interest ?aoi .
+                        ?aoi crm:P1_is_identified_by ?aoi_app .
+                        ?aoi_app rdfs:label ?aoi_label .
+                    } 
+                    ORDER BY ?start_date
                     
-                    // `;
-                    B2022_query =`
-        select *
-        
-        
-        where {?a ?b ?c} LIMIT 100
+                    `;
                     
-                    `
                 }      
                 
                 var queryName = "Life Timeline";
@@ -316,7 +365,7 @@
                         }
                         console.log(queryCode);
                         // window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');
-                        window.open('search.html?subj=http://virtuoso.adaptcentre.ie/sparql/', '_self');
+                        window.open('search.html?subj='+subject,'_self');
                         
                         
                     }
@@ -406,7 +455,7 @@
                     
                     
                     <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
-                    onClick="javascript: window.open('search.html?subj=http://virtuoso.adaptcentre.ie/sparql/', '_self');">
+                    onClick="javascript: window.open('search.html?subj='+subject, '_self');">
                     Refresh
                 </sub>
                 <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
