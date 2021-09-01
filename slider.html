@@ -86,7 +86,7 @@
             var b2022_URL;
             var B2022_explore_query;
             
-            if(subject == null || subject == "http://virtuoso.adaptcentre.ie/sparql/"){     // SPARQL endpoint = Virtuoso
+            if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){     // SPARQL endpoint = Virtuoso
                 b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/';    
                 B2022_explore_query = `
                 
@@ -134,7 +134,7 @@
                 
                 
             }
-            else{   // SPARQL endpoint = localhost:3030
+            else{   // SPARQL endpoint = localhost:3030 and subject == null
                 b2022_URL =  'http://localhost:3030/Beyond_2022/query';
                 B2022_explore_query = `
                 
@@ -393,7 +393,7 @@
                     element: "pre",
                     attributes: {
                         style: "text-align: justify; font-size: 12px; overflow: auto",
-                        innerText: "Get life timeliens of people who were born between 01-01-"+from_text+" and 31-12- "+to_text+".",
+                        innerText: "Get life timeliens of people who were born between 1st Jan "+from_text+" and 31st Dec "+to_text+".",
                     },
                 },
                 className: 'swal-wide',
@@ -494,7 +494,7 @@
                     }
                 </style>
                 <div class="range-slider">
-                    Year interval to be considered:<br>The interval can be either dragged keeping the same time span, or adjusted using the handles.<br>
+                    Use the slider below to select the time interval that you want to explore:<br>The interval can be either dragged keeping the same time span, or adjusted using the handles.<br>
                     
                     <!-- Places slider on the html page -->
                     <input type="text" class="js-range-slider" value="" />
@@ -505,8 +505,8 @@
                     <input type="text" class="js-input-from" value="0" />   
                     <input type="text" class="js-input-to" value="0" />
                     
-                    (These are just to show that the input boxes and the slider are "connected".)<br>
-                    By default the maximum year interval is supposed to be 600 years, but it can be overwritten using the input boxes above... (however, it will throw an alert message when clicking on the search button)<br>
+                    <br>
+                    To select a time interval greater than 600 years, enter the start and the end date of the interval in the fields above<br>
                     
                 </div>    
                 <br>    
@@ -541,8 +541,8 @@
                         grid: true,
                         min: min,
                         max: max,
-                        from: 1310,
-                        to: 1730,
+                        from: 310,
+                        to: 510,
                         drag_interval: true,
                         min_interval: null,
                         max_interval: 600,
