@@ -33,6 +33,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
     
+    <link rel="stylesheet" href="css/filter.css">
+    
     <script type="text/javascript">
         
         var b2022_URL;
@@ -189,6 +191,7 @@
                     ?person vt_ont:DIB_area_of_interest ?aoi .
                     ?aoi crm:P1_is_identified_by ?aoi_app .
                     ?aoi_app rdfs:label ?aoi_label .
+                    #FILTER (?aoi_label = 'Religion').
                 } 
                 ORDER BY ?start_date
                 
@@ -221,12 +224,7 @@
                 return arr;
             }
             
-            d3.sparql(b2022_URL, B2022_query).then(function (data) {
-                
-                console.log(data);
-                
-                
-                
+            function objectToArray(data){
                 data.forEach(function (arrayItem) {            // Edit deathData to have start & end date with oName
                     if (typeof arrayItem === "object") {
                         arrayItem["start"] = arrayItem.start_date;         //start is obj date
@@ -237,6 +235,18 @@
                         arrayItem["uriName"] = arrayItem.normalized_uri;
                     }
                 });
+                return data;
+            }
+
+            d3.sparql(b2022_URL, B2022_query).then(function (data) {
+                
+                console.log(data);
+                
+                
+                
+                data = objectToArray(data);
+                    
+                
                 
                 function getRandomData(ordinal = false) {
                     var groups = 1;
@@ -300,13 +310,10 @@
                     // data.person_name = renameFiles(data.person_name);
                     data = result;
                     
-                    // console.log(data);
-                    // data = sorted_data;
-                    // const sorted_data = renameFiles(data);
                     
                     
                     
-                    
+                    window.globalData = data;
                     return [...Array(NGROUPS).keys()].map(i => ({
                         //group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
                         group: queryName,
@@ -370,21 +377,22 @@
                 }
                 
                 function segmentClick(segment) {
-                    console.log(segment.target.__data__.labelVal);
-                    // segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
+                    triggerUpdate: false;
+                    // console.log(segment.target.__data__.labelVal);
+                    segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
                     // segment.target.refresh();
-
-                    segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
-                    setTimeout(createMap, 1000);
+                    
+                    // segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
+                    //setTimeout(createMap, 1000);
                     // createMap();
                     
                     
                 }
                 
-              
                 
                 
-                const timeline = TimelinesChart()
+                
+                window.timeline = TimelinesChart()
                 .rightMargin(200)               // 200 pixels
                 // .rightMargin(0)
                 .leftMargin(100)
@@ -393,6 +401,7 @@
                 .topMargin(40)
                 .data(getRandomData(true))
                 .onSegmentClick(segmentClick)
+                
                 //.sortChrono([true])             //Places in order of end date if true
                 .zQualitative(true)             //https://github.com/vasturiano/timelines-chart for more details
                 .zColorScale(scale)             // Uses scale above to color each oName
@@ -435,7 +444,7 @@
                                                 </li>
                                                 <li><a href="about.html">About</a>
                                                 </li>
-                                                <li><a href="contributor.html">Contributors</a>
+                                                <li><a href="contributor.html">Team</a>
                                                 </li>
                                                 <li><a href="something_fun.html">Find by Century</a>
                                                 </li>
@@ -469,48 +478,175 @@
             <input type='hidden' id='textID' />
         -->
         
+        <button id="filter-button" class="button">Filter</button>
+        <div id="filter-container" class="filters">
+            <ul class="filters__list">
+                <li>
+                    <input id="f1" type="checkbox" />
+                    <label for="f1">Religion</label>
+                </li>
+                <li>
+                    <input id="f2" type="checkbox" />
+                    <label for="f2">Saints</label>
+                </li>
+                <li>
+                    <input id="f3" type="checkbox" />
+                    <label for="f3">Law</label>
+                </li>
+                <li>
+                    <input id="f4" type="checkbox" />
+                    <label for="f4">Literature</label>
+                </li>
+                <li>
+                    <input id="f5" type="checkbox" />
+                    <label for="f5">Gaelic & Norse Lords</label>
+                </li>
+                
+            </ul></div>
+            
+            
+            
+            <br></br>
+            
+            
+            <!-- <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
+                onClick="javascript: window.open('search.html?subj='+subject, '_self');">
+                Refresh
+            </sub> -->
+            
+            <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
+            onClick="javascript: 
+            var container = document.getElementById('filter-container');
+            data = window.globalData;
+            if(f1.checked){
+                data = data.filter(function(currentObject){
+                    return currentObject.aoi_label === 'Religion';
+                });
+                console.log(data);
+
+                function objectToArray(data){
+                    data.forEach(function (arrayItem) {            // Edit deathData to have start & end date with oName
+                        if (typeof arrayItem === 'object') {
+                            arrayItem['start'] = arrayItem.start_date;         //start is obj date
+                            // arrayItem['end'] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
+                            arrayItem['end'] = arrayItem.end_date;
+                            arrayItem['oName'] = arrayItem.person_name;      //oName is pName
+                            arrayItem['pName'] = arrayItem.aoi_label;
+                            arrayItem['uriName'] = arrayItem.normalized_uri;
+                        }
+                    });
+                    return data;
+                }
+                newData = objectToArray(data);
+                window.timeline.data(newData)
+                .rightMargin(100)               // 200 pixels
+                // .rightMargin(0)
+                .leftMargin(100)
+                .maxHeight(1920)
+                .maxLineHeight(17)
+                .topMargin(40)
+                .zQualitative(true)             //https://github.com/vasturiano/timelines-chart for more details
+               
+                (document.getElementById('chart_div'));
+                
+
+
+
+                
+
+            }else{
+                console.log('false');
+            }
+            ">
+            Refresh
+        </sub>
         
-        <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
-        onClick="javascript: window.open('search.html?subj='+subject, '_self');">
-        Refresh
-    </sub>
-    <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
-        
-        onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+        <br> </br>
         
         <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
-            onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
             
-        </div>
-       
-        <br> </br>
-        <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
-        </div>
+            onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+            
+            <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
+                onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+                
+            </div>
+            
+            <br> </br>
+            <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
+            </div>
+            
+            
+            <script>
+                
+                var button = document.getElementById("filter-button");
+                var container = document.getElementById("filter-container");
+                var input = document.querySelectorAll("input");
+                
+                button.onclick = function (e) {
+                    e.stopPropagation();
+                    if (container.classList.contains("filters--active")) {
+                        container.classList.remove("filters--active");
+                    } else {
+                        container.classList.add("filters--active");
+                    }
+                };
+                
+                container.onclick = function (e) {
+                    e.stopPropagation();
+                };
+                
+                window.onclick = function () {
+                    container.classList.remove("filters--active");
+                };
+                
+                console.log(input);
+                
+                for (var i = 0; i < input.length; i++) {
+                    var currentInput = input[i];
+                    
+                    currentInput.onclick = function () {
+                        var isChecked = false;
+                        for (var j = 0; j < input.length; j++) {
+                            if (input[j].checked) {
+                                isChecked = true;
+                                break;
+                            }
+                        }
+                        
+                        if (isChecked) {
+                            button.classList.add("button--highlight");
+                        } else {
+                            button.classList.remove("button--highlight");
+                        }
+                    };
+                }
+                
+                
+                
+            </script>    
+            
+            <script src="assets/js/Nav.js"></script>
+            <script src="assets/js/Search.js"></script>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
+            <script src="https://d3js.org/d3.v5.min.js"></script>
+            <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+            <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+            <script src="https://d3js.org/d3-request.v1.min.js"></script>
+            
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+            crossorigin="anonymous"></script>
+            
+            <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
+            
+            
+            <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+            <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
+            <script type="text/javascript" src="assets/js/parallax.min.js"></script>
+            <script type="text/javascript" src="assets/js/main.js"></script>
+        </body>
         
+        </html>
         
-        
-        
-        <script src="assets/js/Nav.js"></script>
-        <script src="assets/js/Search.js"></script>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
-        <script src="https://d3js.org/d3.v5.min.js"></script>
-        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-        <script src="https://d3js.org/d3-request.v1.min.js"></script>
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
-        crossorigin="anonymous"></script>
-        
-        <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
-        
-        
-        <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
-        <script type="text/javascript" src="assets/js/parallax.min.js"></script>
-        <script type="text/javascript" src="assets/js/main.js"></script>
-    </body>
-    
-    </html>
-    
