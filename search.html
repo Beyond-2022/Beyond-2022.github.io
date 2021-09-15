@@ -417,11 +417,11 @@
                     function segmentClick(segment) {
                         triggerUpdate: false;
                         // console.log(segment.target.__data__.labelVal);
-                        segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
+                        //segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
                         // segment.target.refresh();
                         
-                        // segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
-                        //setTimeout(createMap, 1000);
+                         segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
+                        setTimeout(createMap, 1000);
                         // createMap();
                         
                         
@@ -444,7 +444,7 @@
                     .zQualitative(true)             //https://github.com/vasturiano/timelines-chart for more details
                     .zColorScale(scale)             // Uses scale above to color each oName
                     .zScaleLabel('Consumo')
-                    (document.getElementById('chart_div'));
+                    (document.getElementById('chart_div1'));
                 }
                 
             }
@@ -542,7 +542,7 @@
             
             <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
             onClick="
-            var div = document.getElementById('chart_div');
+            var div = document.getElementById('chart_div1');
             while(div.firstChild){
                 div.removeChild(div.firstChild);
             }
@@ -564,9 +564,9 @@
             </div>
             
             <br> </br>
-            <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
-            </div>
-            
+            <div id="chart_div1" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
+            </div> 
+            <!-- <div id = "chart_div">Explore</div> -->
             
             <script>
                 

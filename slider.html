@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="css/RangeSlider.min.css">
     <script src="assets/js/sweetalert.min.js"></script>
     
+    <!-- Style for slider bar -->
     <style>
         .swal-title {
             margin: 0px;
@@ -56,6 +57,7 @@
     </style>
     
     
+    <!-- Script genetating timeline chart -->
     <script>
         
         // Functionto generate the timeline chart
@@ -65,6 +67,7 @@
                 div.removeChild(div.firstChild);
             }
             
+            // Takes input from slider and appends 0 to year if required
             from = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
             to = ('0' + to).slice(-4);
             console.log("From = "+from);
@@ -76,7 +79,6 @@
             // Default SPARQL endpoint = http://virtuoso.adaptcentre.ie/sparql/
             // TO have localhost as an endpoint, add ?subj=http://localhost:3030/Beyond_2022/query to the URL
             
-            
             const queryString = window.location.search;										// returns: ?subj=...								
             const urlParams = new URLSearchParams(queryString);
             
@@ -86,6 +88,7 @@
             var b2022_URL;
             var B2022_explore_query;
             
+            // If endpoint = VIRTUOSO
             if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){     // SPARQL endpoint = Virtuoso
                 b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/';    
                 B2022_explore_query = `
@@ -190,13 +193,7 @@
             
             
             
-            function addMonth(date, month) 
-            {
-                var result = new Date(date);
-                result.setMonth(result.getMonth() + month);
-                return result;
-            }
-            
+            // Function to append numbers to duplicate names which prevents overlap of segments on timeline chart
             function renameFiles(arr){
                 var count = {};
                 arr.forEach(function(x,i) {
@@ -248,7 +245,7 @@
                     data = sortedData;
                     
                     
-                    
+                    // Gets oName from the data and create a new array of the oName
                     function getFields(input, field) {
                         var output = [];
                         for (var i=0; i < input.length ; ++i)
@@ -257,14 +254,9 @@
                     }
                     
                     var data_names = getFields(data, "oName");
-                    // console.log(data_names);
                     var sorted_names = renameFiles(data_names);
-                    // console.log(sorted_names);
                     
-                    // var data_person_names = getFields(data, "person_name");
-                    // // console.log(data_names);
-                    // var sorted_person_names = renameFiles(data_person_names);
-                    
+                    // Create an array with new names (after modifying duplicated names)
                     result = data.map(function(currentObject, index) {
                         return {
                             aoi_label: currentObject.aoi_label,
@@ -283,16 +275,7 @@
                         };
                     });
                     console.log(result);
-                    // data.person_name = renameFiles(data.person_name);
                     data = result;
-                    
-                    // console.log(data);
-                    // data = sorted_data;
-                    // const sorted_data = renameFiles(data);
-                    
-                    
-                    
-                    
                     
                     
                     
@@ -314,11 +297,9 @@
                         //ie the bars in the timeline
                         function getSegmentsData(index)                 //called data.length times
                         {
-                            //console.log("getSegments called");
-                            //const nSegments = data.length,
-                            const nSegments = 1,                                                         
+                            
                             segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);        
-                            // console.log(segMaxLength);
+                            
                             let runLength = MINTIME;                                                        // earliest date in timeline?
                             return [...Array(nSegments).keys()].map(i => {
                                 start = data[index].start,                              //every entry has a start date
@@ -329,8 +310,7 @@
                                 return {
                                     timeRange: [start, end],        // shows start date to end date on hover
                                     val: data[index].pName,         // shows pName on hover
-                                    //val: "Interests: "+ data[index].pName,         // shows pName on hover
-                                    // val: "Lifetime",         // shows pName on hover
+                                    
                                     duartion: data[index].start + " - " + data[index].end
                                     //labelVal: is optional - only displayed in the labels
                                 };
@@ -339,8 +319,11 @@
                     }
                 }
                 
+                // Colours used by the chart
                 let scale = d3.scaleOrdinal(['#dff32a', '#78850a', '#70050a', '#0a8575', '#3867e7', '#f55e83', '#e4990f', '#e46f0f']);
                 
+                
+                // On Segment Click function
                 function segmentClick(segment) {
                     console.log(segment.target.__data__.label);
                     var segmentName = segment.target.__data__.label;
@@ -357,7 +340,7 @@
                 }
                 
                 
-                
+                // Create timelines chart
                 TimelinesChart()
                 .rightMargin(200)               // 200 pixels
                 .leftMargin(100)
@@ -376,279 +359,228 @@
             }); //end of B2022_Death_Query 
         }
         
-        // // Function to open a dialog box
-        // function open_dialog(from,to) {
-            //     from_text = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
-            //     to_text = ('0' + to).slice(-4);
+        
+        // Function to open a dialog box when time interval is selected
+        function open_dialog(from,to) {
+            from_text = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
+            to_text = ('0' + to).slice(-4);
             
-            //     var header = "";
-            //     if (to-from > 600) {
-                //         header = "Generate Timeline Chart: (ALERT the given time span might be too big for the triplestore!!)";
-                //     } else {
-                    //         header = "Generate Timeline Chart";
-                    //     };
-                    //     swal({
-                        //         title: header,
-                        //         content: {
-                            //             element: "pre",
-                            //             attributes: {
-                                //                 style: "text-align: justify; font-size: 12px; overflow: auto",
-                                //                 innerText: "Get life timeliens of people who were born between 1st Jan "+from_text+" and 31st Dec "+to_text+".",
-                                //             },
-                                //         },
-                                //         className: 'swal-wide',
-                                //         buttons: ['Close', 'Fire the query!'],
-                                //     })
-                                //     .then(function(value) {
-                                    //         if (value) {
-                                        //             generateGraph(from, to);
-                                        //             swal({
-                                            //                 style: "text-align: justify;",
-                                            //                 text: "Generating Graph",
-                                            //                 icon: "success", timer: "5000",
-                                            //                 button: "Explore"
-                                            //             });
-                                            //         }
-                                            //     });
-                                            // }
-                                            
-                                            
-                                            //    
-                                            
-                                            // Function to open a dialog box
-                                            function open_dialog(from,to) {
-                                                from_text = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
-                                                to_text = ('0' + to).slice(-4);
-                                                
-                                                var header = "";
-                                                if (to-from > 600) {
-                                                    header = "Generate Timeline Chart: (ALERT the given time span might be too big for the triplestore!!)";
-                                                } else {
-                                                    header = "Generate Timeline Chart";
-                                                };
-                                                swal({
-                                                    title: header,
-                                                    content: {
-                                                        element: "pre",
-                                                        attributes: {
-                                                            style: "text-align: justify; font-size: 12px; overflow: auto",
-                                                            innerText: "Get life timeliens of people who were born between 1st Jan "+from_text+" and 31st Dec "+to_text+".",
-                                                        },
-                                                    },
-                                                    className: 'swal-wide',
-                                                    buttons: ['Close', 'Fire the query!'],
-                                                })
-                                                .then(function(value) {
-                                                    if (value) {
-                                                        generateGraph(from, to);
-                                                        swal({
-                                                            style: "text-align: justify;",
-                                                            text: "Generating Graph",
-                                                            icon: "success", timer: "5000",
-                                                            button: "Explore"
-                                                        });
-                                                    }
-                                                });
-                                            }
-                                            
-                                            //
-                                        </script>
-                                        
-                                    </head>
-                                    
-                                    
-                                    <header class="site-header site2-header site3-header header-default header-sticky animated">
-                                        <div class="container-fluid">
-                                            <div class="site2-header1">
-                                                <div class="row">
-                                                    <div class="col-md-2 fix-logo">
-                                                        <div class="wrapper-logo">
-                                                            <a href="index.html" class="logo-default"><img src="pic/beyondLogo-1.png" alt="beyondLogo-1" /></a>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4 col-md-push-6 fix-social">
-                                                        
-                                                        <a href="https://github.com/Beyond-2022/Beyond-2022.github.io.git" class="buy-ticket"><img
-                                                            src="pic/GitHub-Logo.png" alt="AYF" /></a>
-                                                        </div>
-                                                        <div class="col-md-6 col-md-pull-4 fix-menu">
-                                                            <div class="row">
-                                                                <nav class="main-menu">
-                                                                    <ul class="nav-bar">
-                                                                        <li><a href="index.html">home</a>
-                                                                        </li>
-                                                                        <li><a href="about.html">About</a>
-                                                                        </li>
-                                                                        <li><a href="contributor.html">Team</a>
-                                                                        </li>
-                                                                        <li><a href="something_fun.html">Find by Century</a>
-                                                                        </li>
-                                                                        <li><a href="slider.html">Find by Years</a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </nav>
-                                                            </div>
-                                                            
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </header>
-                                        
-                                        <div class="page-heading">
-                                            <h1 class="entry-title">Beyond Timelines</h1>
-                                            <h5 style="color: white;">Explore Irish Records dating back to the time of the Normans</h5>
-                                            <h5 style="color: white;">which was destroyed in the opening engagement of the Civil War on June 30th, 1922.</h5>
-                                            
-                                            <ul class="entry-breadcrumb">
-                                            </ul>
-                                        </div>
-                                        <div id="homepage">
-                                            
-                                            
-                                            <body>
-                                                <div id="Home" class="panel" >
-                                                    
-                                                    
-                                                    <!-- <body>
-                                                        <div class="container">
-                                                            <div class="col">
-                                                                
-                                                            </div>
-                                                            <div class="row">
-                                                                
-                                                            </div>
-                                                        </body>
-                                                    </div> -->
-                                                    
-                                                    
-                                                    <style>
-                                                        body {
-                                                            /* margin: 60px; */
-                                                            font-family: Arial, sans-serif;
-                                                            font-size: 12px;
-                                                        }
-                                                        .range-slider {
-                                                            margin: 60px;
-                                                            position: relative;
-                                                            height: 80px;
-                                                        }
-                                                    </style>
-                                                    <div class="range-slider">
-                                                        Use the slider below to select the time interval that you want to explore:<br>The interval can be either dragged keeping the same time span, or adjusted using the handles.<br>
-                                                        
-                                                        <!-- Places slider on the html page -->
-                                                        <input type="text" class="js-range-slider" value="" />
-                                                    </div>
-                                                    <div class="extra-controls" style="margin-left: 5%;">
-                                                        
-                                                        <!-- From and To fields on the html page -->
-                                                        <input type="text" class="js-input-from" value="0" />   
-                                                        <input type="text" class="js-input-to" value="0" />
-                                                        
-                                                        <br>
-                                                        To select a time interval greater than 600 years, enter the start and the end date of the interval in the fields above<br>
-                                                        
-                                                    </div>    
-                                                    <br>    
-                                                    <div>
-                                                        <!-- Search Button -->
-                                                        <button class = "center-searchbar-button"  onclick="open_dialog($('.js-input-from').prop('value'),$('.js-input-to').prop('value'))">Explore</button>
-                                                        
-                                                    </div>
-                                                    <br>
-                                                    <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
-                                                    </div>
-                                                    
-                                                    <!--jQuery-->
-                                                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-                                                    <!--Plugin JavaScript file-->
-                                                    <script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"></script>
-                                                    
-                                                    <!-- Script for slider -->
-                                                    <script>
-                                                        var $range = $(".js-range-slider"),
-                                                        $inputFrom = $(".js-input-from"),
-                                                        $inputTo = $(".js-input-to"),
-                                                        instance,
-                                                        min = 121,
-                                                        max = 2021,
-                                                        from = 0,
-                                                        to = 0;
-                                                        
-                                                        $range.ionRangeSlider({
-                                                            skin: "flat",
-                                                            type: "double",
-                                                            grid: true,
-                                                            min: min,
-                                                            max: max,
-                                                            from: 310,
-                                                            to: 510,
-                                                            drag_interval: true,
-                                                            min_interval: null,
-                                                            max_interval: 600,
-                                                            onStart: updateInputs,
-                                                            onChange: updateInputs
-                                                        });
-                                                        instance = $range.data("ionRangeSlider");
-                                                        
-                                                        function updateInputs (data) {
-                                                            from = data.from;
-                                                            to = data.to;
-                                                            
-                                                            $inputFrom.prop("value", from);
-                                                            $inputTo.prop("value", to);	
-                                                        }
-                                                        
-                                                        $inputFrom.on("input", function () {
-                                                            var val = $(this).prop("value");
-                                                            
-                                                            // validate
-                                                            if (val < min) {
-                                                                val = min;
-                                                            } else if (val > to) {
-                                                                val = to;
-                                                            }
-                                                            
-                                                            instance.update({
-                                                                from: val
-                                                            });
-                                                        });
-                                                        
-                                                        $inputTo.on("input", function () {
-                                                            var val = $(this).prop("value");
-                                                            
-                                                            // validate
-                                                            if (val < from) {
-                                                                val = from;
-                                                            } else if (val > max) {
-                                                                val = max;
-                                                            }
-                                                            
-                                                            instance.update({
-                                                                to: val
-                                                            });
-                                                        });
-                                                    </script>
-                                                    
-                                                    
-                                                    
-                                                    <script src="assets/js/Nav.js"></script>
-                                                    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-                                                    <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
-                                                    <script src="https://d3js.org/d3.v5.min.js"></script>
-                                                    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-                                                    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-                                                    <script src="https://d3js.org/d3-request.v1.min.js"></script>
-                                                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
-                                                    integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
-                                                    crossorigin="anonymous"></script>
-                                                    <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
-                                                    <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-                                                    <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
-                                                    <script type="text/javascript" src="assets/js/parallax.min.js"></script>
-                                                    <script type="text/javascript" src="assets/js/main.js"></script>
-                                                </body>
-                                                
-                                                </html>
-                                                
+            var header = "";
+            if (to-from > 600) {
+                header = "Generate Timeline Chart: (ALERT the given time span might be too big for the triplestore!!)";
+            } else {
+                header = "Generate Timeline Chart";
+            };
+            swal({
+                title: header,
+                content: {
+                    element: "pre",
+                    attributes: {
+                        style: "text-align: justify; font-size: 12px; overflow: auto",
+                        innerText: "Get life timeliens of people who were born between 1st Jan "+from_text+" and 31st Dec "+to_text+".",
+                    },
+                },
+                className: 'swal-wide',
+                buttons: ['Close', 'Fire the query!'],
+            })
+            .then(function(value) {
+                if (value) {
+                    generateGraph(from, to);
+                    swal({
+                        style: "text-align: justify;",
+                        text: "Generating Graph",
+                        icon: "success", timer: "5000",
+                        button: "Explore"
+                    });
+                }
+            });
+        }
+        
+        //
+    </script>
+    
+</head>
+
+
+<header class="site-header site2-header site3-header header-default header-sticky animated">
+    <div class="container-fluid">
+        <div class="site2-header1">
+            <div class="row">
+                <div class="col-md-2 fix-logo">
+                    <div class="wrapper-logo">
+                        <a href="index.html" class="logo-default"><img src="pic/beyondLogo-1.png" alt="beyondLogo-1" /></a>
+                    </div>
+                </div>
+                <div class="col-md-4 col-md-push-6 fix-social">
+                    
+                    <a href="https://github.com/Beyond-2022/Beyond-2022.github.io.git" class="buy-ticket"><img
+                        src="pic/GitHub-Logo.png" alt="AYF" /></a>
+                    </div>
+                    <div class="col-md-6 col-md-pull-4 fix-menu">
+                        <div class="row">
+                            <nav class="main-menu">
+                                <ul class="nav-bar">
+                                    <li><a href="index.html">home</a>
+                                    </li>
+                                    <li><a href="about.html">About</a>
+                                    </li>
+                                    <li><a href="contributor.html">Team</a>
+                                    </li>
+                                    <li><a href="something_fun.html">Find by Century</a>
+                                    </li>
+                                    <li><a href="slider.html">Find by Years</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="page-heading">
+        <h1 class="entry-title">Beyond Timelines</h1>
+        <h5 style="color: white;">Explore Irish Records dating back to the time of the Normans</h5>
+        <h5 style="color: white;">which was destroyed in the opening engagement of the Civil War on June 30th, 1922.</h5>
+        
+        <ul class="entry-breadcrumb">
+        </ul>
+    </div>
+    <div id="homepage">
+        
+        
+        <body>
+            <div id="Home" class="panel" >
+                
+                <style>
+                    body {
+                        /* margin: 60px; */
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                    }
+                    .range-slider {
+                        margin: 60px;
+                        position: relative;
+                        height: 80px;
+                    }
+                </style>
+                <div class="range-slider">
+                    Use the slider below to select the time interval that you want to explore:<br>The interval can be either dragged keeping the same time span, or adjusted using the handles.<br>
+                    
+                    <!-- Places slider on the html page -->
+                    <input type="text" class="js-range-slider" value="" />
+                </div>
+                <div class="extra-controls" style="margin-left: 5%;">
+                    
+                    <!-- From and To fields on the html page -->
+                    <input type="text" class="js-input-from" value="0" />   
+                    <input type="text" class="js-input-to" value="0" />
+                    
+                    <br>
+                    To select a time interval greater than 600 years, enter the start and the end date of the interval in the fields above<br>
+                    
+                </div>    
+                <br>    
+                <div>
+                    <!-- Search Button -->
+                    <button class = "center-searchbar-button"  onclick="open_dialog($('.js-input-from').prop('value'),$('.js-input-to').prop('value'))">Explore</button>
+                    
+                </div>
+                <br>
+                <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
+                </div>
+                
+                <!--jQuery-->
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+                <!--Plugin JavaScript file-->
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"></script>
+                
+                <!-- Script for slider -->
+                <script>
+                    var $range = $(".js-range-slider"),
+                    $inputFrom = $(".js-input-from"),
+                    $inputTo = $(".js-input-to"),
+                    instance,
+                    min = 121,
+                    max = 2021,
+                    from = 0,
+                    to = 0;
+                    
+                    $range.ionRangeSlider({
+                        skin: "flat",
+                        type: "double",
+                        grid: true,
+                        min: min,
+                        max: max,
+                        from: 310,
+                        to: 510,
+                        drag_interval: true,
+                        min_interval: null,
+                        max_interval: 600,
+                        onStart: updateInputs,
+                        onChange: updateInputs
+                    });
+                    instance = $range.data("ionRangeSlider");
+                    
+                    function updateInputs (data) {
+                        from = data.from;
+                        to = data.to;
+                        
+                        $inputFrom.prop("value", from);
+                        $inputTo.prop("value", to);	
+                    }
+                    
+                    $inputFrom.on("input", function () {
+                        var val = $(this).prop("value");
+                        
+                        // validate
+                        if (val < min) {
+                            val = min;
+                        } else if (val > to) {
+                            val = to;
+                        }
+                        
+                        instance.update({
+                            from: val
+                        });
+                    });
+                    
+                    $inputTo.on("input", function () {
+                        var val = $(this).prop("value");
+                        
+                        // validate
+                        if (val < from) {
+                            val = from;
+                        } else if (val > max) {
+                            val = max;
+                        }
+                        
+                        instance.update({
+                            to: val
+                        });
+                    });
+                </script>
+                
+                
+                
+                <script src="assets/js/Nav.js"></script>
+                <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
+                <script src="https://d3js.org/d3.v5.min.js"></script>
+                <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+                <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+                <script src="https://d3js.org/d3-request.v1.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+                integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+                crossorigin="anonymous"></script>
+                <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
+                <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+                <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
+                <script type="text/javascript" src="assets/js/parallax.min.js"></script>
+                <script type="text/javascript" src="assets/js/main.js"></script>
+            </body>
+            
+            </html>
+            
