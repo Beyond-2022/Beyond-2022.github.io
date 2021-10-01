@@ -33,127 +33,33 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
     
+    <link rel="stylesheet" href="css/filter.css">
+    
     <script type="text/javascript">
         
-        var b2022_URL;
-        // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
-        
-        const queryString = window.location.search;										// returns: ?subj=...								
-        const urlParams = new URLSearchParams(queryString);
-        
-        const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
-        
-        //subject can be either
-        // 'http://virtuoso.adaptcentre.ie/sparql/'
-        // OR
-        // 'http://localhost:3030/Beyond_2022/query'
-        
-        
-        var B2022_query; 
-        // if(localStorage.getItem("typeOfQuery") == null){}
-        console.log("Subject = "+ subject);
-        if(subject === "http://localhost:3030/Beyond_2022/query"){
+        function startFunction(){
             
-            b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+            var b2022_URL;
+            // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
             
-            B2022_query = `
-            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX crm: <http://erlangen-crm.org/current/>
-            PREFIX b2022: <https://kb.beyond2022.ie/>
-            PREFIX vt: <https://kb.virtualtreasury.ie/>
-            PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+            const queryString = window.location.search;										// returns: ?subj=...								
+            const urlParams = new URLSearchParams(queryString);
             
-            select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label ?type
+            const subject = urlParams.get('subj');											// isolates subj eg: https://www.wikidata.org/wiki/Q937
             
-            where {
-                #Get Birth and Death events and time-spans for each person
-                ?birth rdf:type crm:E67_Birth;
-                crm:P4_has_time-span ?timespanB;
-                crm:P98_brought_into_life ?person. 
-                ?death rdf:type crm:E69_Death;
-                crm:P4_has_time-span ?timespanD;
-                crm:P93_took_out_of_existence ?person.
-                
-                #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
-                ?timespanB crm:P82a_begin_of_the_begin ?start_date.
-                ?timespanD crm:P82b_end_of_the_end ?end_date.
-                
-                #?person crm:P2_has_type <https://ont.virtualtreasury.ie/ontology#Female>.
-                
-                #Get appellation (surname-forename) of person
-                ?person crm:P1_is_identified_by ?appellation.
-                ?appellation rdfs:label ?person_name.
-                FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
-                
-                ?person vt_ont:DIB_area_of_interest ?aoi .
-                ?aoi crm:P1_is_identified_by ?aoi_app .
-                ?aoi_app rdfs:label ?aoi_label .
-                BIND ( STR ( ?person ) AS ?normalized_uri ).
-            } 
-            ORDER BY ?start_date
-            LIMIT 50 
+            //subject can be either
+            // 'http://virtuoso.adaptcentre.ie/sparql/'
+            // OR
+            // 'http://localhost:3030/Beyond_2022/query'
             
             
-            
-            `;
-        }
-        else if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){
-            b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/'
-            
-            B2022_query =`
-            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX crm: <http://erlangen-crm.org/current/>
-            PREFIX b2022: <https://kb.beyond2022.ie/>
-            PREFIX vt: <https://kb.virtualtreasury.ie/>
-            PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
-            PREFIX b2022_ont: <https://kb.beyond2022.ie/ontology#>
-            
-            #select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
-            select *
-            from <http://beyond2022.ie> # <--- remove this if running the query on localhost! Keep only if testing it on virtuoso.adaptcentre.ie
-            where {
-                #Get Birth and Death events and time-spans for each person
-                ?birth rdf:type crm:E67_Birth;
-                crm:P4_has_time-span ?timespanB;
-                crm:P98_brought_into_life ?person. 
-                ?death rdf:type crm:E69_Death;
-                crm:P4_has_time-span ?timespanD;
-                crm:P93_took_out_of_existence ?person.
-                
-                #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
-                ?timespanB crm:P82a_begin_of_the_begin ?start_date.
-                ?timespanD crm:P82b_end_of_the_end ?end_date.
-                
-                #Get appellation (surname-forename) of person
-                ?person crm:P1_is_identified_by ?appellation.
-                ?appellation rdfs:label ?person_name.
-                FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
-                
-                
-                BIND(?person_name as ?aoi_label).
-                #?person b2022_ont:DIB_area_of_interest ?aoi .
-                #?aoi crm:P1_is_identified_by ?aoi_app .
-                #?aoi_app rdfs:label ?aoi_label .
-            } 
-            ORDER BY ?start_date
-            LIMIT 100 
-            
-            
-            `
-            
-        }  
-        //  else if(subject === "http://localhost:3030/Beyond_2022/query/0300-0399"){
-            else{    
+            var B2022_query; 
+            // if(localStorage.getItem("typeOfQuery") == null){}
+            console.log("Subject = "+ subject);
+            if(subject === "http://localhost:3030/Beyond_2022/query"){
                 
                 b2022_URL =  'http://localhost:3030/Beyond_2022/query';
-                var start_year = subject.substring(40, 44);
-                var end_year = subject.substring(45, 49);
-                console.log("Start Year = "+start_year);
-                console.log("End Year = "+end_year); 
+                
                 B2022_query = `
                 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -163,7 +69,7 @@
                 PREFIX vt: <https://kb.virtualtreasury.ie/>
                 PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
                 
-                select distinct  ?person_name ?start_date ?end_date ?aoi_label
+                select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label ?type
                 
                 where {
                     #Get Birth and Death events and time-spans for each person
@@ -177,9 +83,8 @@
                     #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
                     ?timespanB crm:P82a_begin_of_the_begin ?start_date.
                     ?timespanD crm:P82b_end_of_the_end ?end_date.
-                    FILTER (?start_date > "`+start_year+`-01-01"^^xsd:date).
-                    FILTER (?start_date <= "`+end_year+`-01-01"^^xsd:date).
                     
+                    #?person crm:P2_has_type <https://ont.virtualtreasury.ie/ontology#Female>.
                     
                     #Get appellation (surname-forename) of person
                     ?person crm:P1_is_identified_by ?appellation.
@@ -189,221 +94,360 @@
                     ?person vt_ont:DIB_area_of_interest ?aoi .
                     ?aoi crm:P1_is_identified_by ?aoi_app .
                     ?aoi_app rdfs:label ?aoi_label .
+                    BIND ( STR ( ?person ) AS ?normalized_uri ).
                 } 
                 ORDER BY ?start_date
+                LIMIT 50 
+                
+                
                 
                 `;
-                
-            }      
-            
-            var queryName = "Life Timeline";
-            
-            function addMonth(date, month) 
-            {
-                var result = new Date(date);
-                result.setMonth(result.getMonth() + month);
-                return result;
             }
-            
-            function renameFiles(arr){
-                var count = {};
-                arr.forEach(function(x,i) {
+            else if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){
+                b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/'
+                
+                B2022_query =`
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX crm: <http://erlangen-crm.org/current/>
+                PREFIX b2022: <https://kb.beyond2022.ie/>
+                PREFIX vt: <https://kb.virtualtreasury.ie/>
+                PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                PREFIX b2022_ont: <https://kb.beyond2022.ie/ontology#>
+                
+                #select distinct ?person ?person_name ?start_date ?end_date ?aoi_label
+                select *
+                from <http://beyond2022.ie> # <--- remove this if running the query on localhost! Keep only if testing it on virtuoso.adaptcentre.ie
+                where {
+                    #Get Birth and Death events and time-spans for each person
+                    ?birth rdf:type crm:E67_Birth;
+                    crm:P4_has_time-span ?timespanB;
+                    crm:P98_brought_into_life ?person. 
+                    ?death rdf:type crm:E69_Death;
+                    crm:P4_has_time-span ?timespanD;
+                    crm:P93_took_out_of_existence ?person.
                     
-                    if ( arr.indexOf(x) !== i ) {
-                        var c = x in count ? count[x] = count[x] + 1 : count[x] = 1;
-                        var j = c + 1;
-                        var k = x + '(' + j + ')';
+                    #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                    ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                    ?timespanD crm:P82b_end_of_the_end ?end_date.
+                    
+                    #Get appellation (surname-forename) of person
+                    ?person crm:P1_is_identified_by ?appellation.
+                    ?appellation rdfs:label ?person_name.
+                    FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                    
+                    
+                    BIND(?person_name as ?aoi_label).
+                    #?person b2022_ont:DIB_area_of_interest ?aoi .
+                    #?aoi crm:P1_is_identified_by ?aoi_app .
+                    #?aoi_app rdfs:label ?aoi_label .
+                } 
+                ORDER BY ?start_date
+                LIMIT 100 
+                
+                
+                `
+                
+            }  
+            //  else if(subject === "http://localhost:3030/Beyond_2022/query/0300-0399"){
+                else{    
+                    
+                    b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+                    var start_year = subject.substring(40, 44);
+                    var end_year = subject.substring(45, 49);
+                    console.log("Start Year = "+start_year);
+                    console.log("End Year = "+end_year); 
+                    B2022_query = `
+                    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                    PREFIX crm: <http://erlangen-crm.org/current/>
+                    PREFIX b2022: <https://kb.beyond2022.ie/>
+                    PREFIX vt: <https://kb.virtualtreasury.ie/>
+                    PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
+                    
+                    select distinct  ?person_name ?start_date ?end_date ?aoi_label
+                    
+                    where {
+                        #Get Birth and Death events and time-spans for each person
+                        ?birth rdf:type crm:E67_Birth;
+                        crm:P4_has_time-span ?timespanB;
+                        crm:P98_brought_into_life ?person. 
+                        ?death rdf:type crm:E69_Death;
+                        crm:P4_has_time-span ?timespanD;
+                        crm:P93_took_out_of_existence ?person.
                         
-                        while( arr.indexOf(k) !== -1 ) k = x + '(' + (++j) + ')';
-                        arr[i] = k;
-                    }
-                });
-                return arr;
-            }
-            
-            d3.sparql(b2022_URL, B2022_query).then(function (data) {
-                
-                console.log(data);
-                
-                
-                
-                data.forEach(function (arrayItem) {            // Edit deathData to have start & end date with oName
-                    if (typeof arrayItem === "object") {
-                        arrayItem["start"] = arrayItem.start_date;         //start is obj date
-                        // arrayItem["end"] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
-                        arrayItem["end"] = arrayItem.end_date;
-                        arrayItem["oName"] = arrayItem.person_name;      //oName is pName
-                        arrayItem["pName"] = arrayItem.aoi_label;
-                        arrayItem["uriName"] = arrayItem.normalized_uri;
-                    }
-                });
-                
-                function getRandomData(ordinal = false) {
-                    var groups = 1;
-                    const NGROUPS = groups;
-                    var MAXTIME = data[0].start;
-                    var MINTIME = data[0].start;       //assume start date of first entry is earliest date
+                        #Get begin-of-the-begin of Birth as start date and end-of-the-end of Death as end date
+                        ?timespanB crm:P82a_begin_of_the_begin ?start_date.
+                        ?timespanD crm:P82b_end_of_the_end ?end_date.
+                        FILTER (?start_date > "`+start_year+`-01-01"^^xsd:date).
+                        FILTER (?start_date <= "`+end_year+`-01-01"^^xsd:date).
+                        
+                        
+                        #Get appellation (surname-forename) of person
+                        ?person crm:P1_is_identified_by ?appellation.
+                        ?appellation rdfs:label ?person_name.
+                        FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                        
+                        ?person vt_ont:DIB_area_of_interest ?aoi .
+                        ?aoi crm:P1_is_identified_by ?aoi_app .
+                        ?aoi_app rdfs:label ?aoi_label .
+                        #FILTER (?aoi_label = 'Religion').
+                    } 
+                    ORDER BY ?start_date
                     
-                    // Need to sort array based on start-date
-                    data.forEach(function (arrayItem) {             // find minimum date of query
-                        if (arrayItem.start < MINTIME) {
-                            MINTIME = arrayItem.start;
-                        }
-                        if (arrayItem.start > MAXTIME) {
-                            MAXTIME = arrayItem.start;
+                    `;
+                    
+                }      
+                
+                var queryName = "Life Timeline";
+                
+                function addMonth(date, month) 
+                {
+                    var result = new Date(date);
+                    result.setMonth(result.getMonth() + month);
+                    return result;
+                }
+                
+                function renameFiles(arr){
+                    var count = {};
+                    arr.forEach(function(x,i) {
+                        
+                        if ( arr.indexOf(x) !== i ) {
+                            var c = x in count ? count[x] = count[x] + 1 : count[x] = 1;
+                            var j = c + 1;
+                            var k = x + '(' + j + ')';
+                            
+                            while( arr.indexOf(k) !== -1 ) k = x + '(' + (++j) + ')';
+                            arr[i] = k;
                         }
                     });
-                    
-                    const sortedData = data.sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
-                    data = sortedData;
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    function getFields(input, field) {
-                        var output = [];
-                        for (var i=0; i < input.length ; ++i)
-                        output.push(input[i][field]);
-                        return output;
-                    }
-                    
-                    var data_names = getFields(data, "oName");
-                    // console.log(data_names);
-                    var sorted_names = renameFiles(data_names);
-                    // console.log(sorted_names);
-                    
-                    // var data_person_names = getFields(data, "person_name");
-                    // // console.log(data_names);
-                    // var sorted_person_names = renameFiles(data_person_names);
-                    
-                    result = data.map(function(currentObject, index) {
-                        return {
-                            aoi_label: currentObject.aoi_label,
-                            end:currentObject.end,
-                            end_date:currentObject.end_date,
-                            normalized_uri:currentObject.normalized_uri,
-                            pName:currentObject.pName,
-                            start:currentObject.start,
-                            start_date:currentObject.start_date,
-                            uriName:currentObject.uriName,
-                            person_name:currentObject.person_name,
-                            // person_name:sorted_person_names[currentObject],
-                            oName:sorted_names[index]
-                            
-                            
-                        };
+                    return arr;
+                }
+                
+                function objectToArray(data){
+                    data.forEach(function (arrayItem) {            // Edit deathData to have start & end date with oName
+                        if (typeof arrayItem === "object") {
+                            arrayItem["start"] = arrayItem.start_date;         //start is obj date
+                            // arrayItem["end"] = addMonth(arrayItem.start_date, 1);     // add extra month to end date if not specified to make it visible on chart 
+                            arrayItem["end"] = arrayItem.end_date;
+                            arrayItem["oName"] = arrayItem.person_name;      //oName is pName
+                            arrayItem["pName"] = arrayItem.aoi_label;
+                            arrayItem["uriName"] = arrayItem.normalized_uri;
+                        }
                     });
-                    console.log(result);
-                    // data.person_name = renameFiles(data.person_name);
-                    data = result;
+                    return data;
+                }
+                
+                d3.sparql(b2022_URL, B2022_query).then(function (data) {
+                    var container = document.getElementById('filter-container');
                     
-                    // console.log(data);
-                    // data = sorted_data;
-                    // const sorted_data = renameFiles(data);
-                    
-                    
-                    
-                    
-                    return [...Array(NGROUPS).keys()].map(i => ({
-                        //group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
-                        group: queryName,
-                        data: getGroupData()
-                    }));
-                    
-                    // the group is the subject -- Albert Einstein = g1
-                    function getGroupData() {                         //called once
-                        //console.log(data);
-                        return [...Array(data.length).keys()].map(i => ({
-                            label: data[i].oName,                     //right hand side of graph
-                            // label: data[i].uriName,
-                            data: getSegmentsData(i)
-                        }));
-                        
-                        //
-                        //ie the bars in the timeline
-                        function getSegmentsData(index)                 //called data.length times
-                        {
-                            //console.log("getSegments called");
-                            //const nSegments = data.length,
-                            const nSegments = 1,                                                         
-                            segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);        
-                            // console.log(segMaxLength);
-                            let runLength = MINTIME;                                                        // earliest date in timeline?
-                            return [...Array(nSegments).keys()].map(i => {
-                                start = data[index].start,                              //every entry has a start date
-                                end = data[index].end ? data[index].end : new Date();   //set end date to end date if present otherwise set to current date
-                                
-                                runLength = new Date(start.getTime() + segMaxLength);         
-                                
-                                return {
-                                    timeRange: [start, end],        // shows start date to end date on hover
-                                    val: data[index].pName,         // shows pName on hover
-                                    //val: "Interests: "+ data[index].pName,         // shows pName on hover
-                                    // val: "Lifetime",         // shows pName on hover
-                                    duration: data[index].start + " - " + data[index].end,
-                                    // labelVal: "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>"
-                                    
-                                };
+                    // If any filters are selected, find out which one
+                    if(f1.checked||f2.checked||f3.checked||f4.checked||f5.checked){
+                        if(!f1.checked){
+                            console.log("Filter1 = "+f1.nextElementSibling.innerText);  // Filter name = f1.nextElementSibling.innerText                      
+                            data = data.filter(function(currentObject){
+                                return currentObject.aoi_label !== f1.nextElementSibling.innerText;
                             });
                         }
+                        if(!f2.checked){
+                            console.log("Filter2 = "+f2.nextElementSibling.innerText);  // Filter name = f1.nextElementSibling.innerText                      
+                            data = data.filter(function(currentObject){
+                                return currentObject.aoi_label !== f2.nextElementSibling.innerText;
+                            });
+                        }
+                        if(!f3.checked){
+                            console.log("Filter3 = "+f3.nextElementSibling.innerText);  // Filter name = f1.nextElementSibling.innerText                      
+                            data = data.filter(function(currentObject){
+                                return currentObject.aoi_label !== f3.nextElementSibling.innerText;
+                            });
+                        }
+                        if(!f4.checked){
+                            console.log("Filter4 = "+f4.nextElementSibling.innerText);  // Filter name = f1.nextElementSibling.innerText                      
+                            data = data.filter(function(currentObject){
+                                return currentObject.aoi_label !== f4.nextElementSibling.innerText;
+                            });
+                        }
+                        if(!f5.checked){
+                            console.log("Filter5 = "+f5.nextElementSibling.innerText);  // Filter name = f1.nextElementSibling.innerText                      
+                            data = data.filter(function(currentObject){
+                                return currentObject.aoi_label !== f5.nextElementSibling.innerText;
+                            });    
+                            
+                        }
                     }
-                }                             //red      orange      yellow      green     brown      purple      pink      blue
-                // let scale = d3.scaleOrdinal(['#E67B7B', '#FF8F00', '#FFF300', '#6AD96A', '#9D6F6F', '#726AD9', '#C16AD9', '#6A8AD9']);    // red, orange, yellow, green, blue, lilac, purple
-                let scale = d3.scaleOrdinal(['#dff32a', '#78850a', '#FFF300', '#0a8575', '#3867e7', '#f55e83', '#e4990f', '#e46f0f']);
+                    
+                    createTimelineChart(data);
+                    
+                }); //end of B2022_Death_Query    
                 
-                function createMap(){
-                    var mymap = L.map('mapid1').setView([51.505, -0.09], 13);
+                function createTimelineChart(data){
+                    console.log(data);
                     
-                    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                        maxZoom: 18,
-                        id: 'mapbox/streets-v11',
-                        tileSize: 512,
-                        zoomOffset: -1
-                    }).addTo(mymap);
                     
-                    L.marker([51.5, -0.09]).addTo(mymap)
-                    .bindPopup('<b>Hello world!</b><br />I am a popup.').openPopup();
                     
+                    data = objectToArray(data);
+                    
+                    
+                    
+                    function getRandomData(ordinal = false) {
+                        var groups = 1;
+                        const NGROUPS = groups;
+                        var MAXTIME = data[0].start;
+                        var MINTIME = data[0].start;       //assume start date of first entry is earliest date
+                        
+                        // Need to sort array based on start-date
+                        data.forEach(function (arrayItem) {             // find minimum date of query
+                            if (arrayItem.start < MINTIME) {
+                                MINTIME = arrayItem.start;
+                            }
+                            if (arrayItem.start > MAXTIME) {
+                                MAXTIME = arrayItem.start;
+                            }
+                        });
+                        
+                        const sortedData = data.sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
+                        data = sortedData;
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        function getFields(input, field) {
+                            var output = [];
+                            for (var i=0; i < input.length ; ++i)
+                            output.push(input[i][field]);
+                            return output;
+                        }
+                        
+                        // CHANGING DUPLICATE NAMES TO PREVENT OVERLAP OF SEGMENTS 
+                        var data_names = getFields(data, "oName");
+                        var sorted_names = renameFiles(data_names);
+                        
+                        result = data.map(function(currentObject, index) {
+                            return {
+                                aoi_label: currentObject.aoi_label,
+                                end:currentObject.end,
+                                end_date:currentObject.end_date,
+                                normalized_uri:currentObject.normalized_uri,
+                                pName:currentObject.pName,
+                                start:currentObject.start,
+                                start_date:currentObject.start_date,
+                                uriName:currentObject.uriName,
+                                person_name:currentObject.person_name,
+                                // person_name:sorted_person_names[currentObject],
+                                oName:sorted_names[index]
+                                
+                                
+                            };
+                        });
+                        console.log(result);
+                        // data.person_name = renameFiles(data.person_name);
+                        data = result;
+                        
+                        
+                        
+                        
+                        window.globalData = data;
+                        return [...Array(NGROUPS).keys()].map(i => ({
+                            //group: document.getElementById('textID').value,                          //left hand side of grid, need to make query name, currently set as data[0].oName
+                            group: queryName,
+                            data: getGroupData()
+                        }));
+                        
+                        // the group is the subject -- Albert Einstein = g1
+                        function getGroupData() {                         //called once
+                            //console.log(data);
+                            return [...Array(data.length).keys()].map(i => ({
+                                label: data[i].oName,                     //right hand side of graph
+                                // label: data[i].uriName,
+                                data: getSegmentsData(i)
+                            }));
+                            
+                            //
+                            //ie the bars in the timeline
+                            function getSegmentsData(index)                 //called data.length times
+                            {
+                                //console.log("getSegments called");
+                                //const nSegments = data.length,
+                                const nSegments = 1,                                                         
+                                segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);        
+                                // console.log(segMaxLength);
+                                let runLength = MINTIME;                                                        // earliest date in timeline?
+                                return [...Array(nSegments).keys()].map(i => {
+                                    start = data[index].start,                              //every entry has a start date
+                                    end = data[index].end ? data[index].end : new Date();   //set end date to end date if present otherwise set to current date
+                                    
+                                    runLength = new Date(start.getTime() + segMaxLength);         
+                                    
+                                    return {
+                                        timeRange: [start, end],        // shows start date to end date on hover
+                                        val: data[index].pName,         // shows pName on hover
+                                        //val: "Interests: "+ data[index].pName,         // shows pName on hover
+                                        // val: "Lifetime",         // shows pName on hover
+                                        duration: data[index].start + " - " + data[index].end,
+                                        // labelVal: "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>"
+                                        
+                                    };
+                                });
+                            }
+                        }
+                    }                             //red      orange      yellow      green     brown      purple      pink      blue
+                    // let scale = d3.scaleOrdinal(['#E67B7B', '#FF8F00', '#FFF300', '#6AD96A', '#9D6F6F', '#726AD9', '#C16AD9', '#6A8AD9']);    // red, orange, yellow, green, blue, lilac, purple
+                    let scale = d3.scaleOrdinal(['#dff32a', '#78850a', '#FFF300', '#0a8575', '#3867e7', '#f55e83', '#e4990f', '#e46f0f']);
+                    
+                    function createMap(){
+                        var mymap = L.map('mapid1').setView([51.505, -0.09], 13);
+                        
+                        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+                            maxZoom: 18,
+                            id: 'mapbox/streets-v11',
+                            tileSize: 512,
+                            zoomOffset: -1
+                        }).addTo(mymap);
+                        
+                        L.marker([51.5, -0.09]).addTo(mymap)
+                        .bindPopup('<b>Hello world!</b><br />I am a popup.').openPopup();
+                        
+                    }
+                    
+                    function segmentClick(segment) {
+                        triggerUpdate: false;
+                        // console.log(segment.target.__data__.labelVal);
+                        //segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
+                        // segment.target.refresh();
+                        
+                         segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
+                        setTimeout(createMap, 1000);
+                        // createMap();
+                        
+                        
+                    }
+                    
+                    
+                    
+                    
+                    window.timeline = TimelinesChart()
+                    .rightMargin(200)               // 200 pixels
+                    // .rightMargin(0)
+                    .leftMargin(100)
+                    .maxHeight(1920)
+                    .maxLineHeight(17)
+                    .topMargin(40)
+                    .data(getRandomData(true))
+                    .onSegmentClick(segmentClick)
+                    
+                    //.sortChrono([true])             //Places in order of end date if true
+                    .zQualitative(true)             //https://github.com/vasturiano/timelines-chart for more details
+                    .zColorScale(scale)             // Uses scale above to color each oName
+                    .zScaleLabel('Consumo')
+                    (document.getElementById('chart_div1'));
                 }
                 
-                function segmentClick(segment) {
-                    console.log(segment.target.__data__.labelVal);
-                    // segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
-                    // segment.target.refresh();
-
-                    segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
-                    setTimeout(createMap, 1000);
-                    // createMap();
-                    
-                    
-                }
-                
-              
-                
-                
-                const timeline = TimelinesChart()
-                .rightMargin(200)               // 200 pixels
-                // .rightMargin(0)
-                .leftMargin(100)
-                .maxHeight(1920)
-                .maxLineHeight(17)
-                .topMargin(40)
-                .data(getRandomData(true))
-                .onSegmentClick(segmentClick)
-                //.sortChrono([true])             //Places in order of end date if true
-                .zQualitative(true)             //https://github.com/vasturiano/timelines-chart for more details
-                .zColorScale(scale)             // Uses scale above to color each oName
-                .zScaleLabel('Consumo')
-                (document.getElementById('chart_div'));
-                
-                
-            }); //end of B2022_Death_Query    
-            
-            
-            
+            }
         </script>
         
         
@@ -435,7 +479,7 @@
                                                 </li>
                                                 <li><a href="about.html">About</a>
                                                 </li>
-                                                <li><a href="contributor.html">Contributors</a>
+                                                <li><a href="contributor.html">Team</a>
                                                 </li>
                                                 <li><a href="something_fun.html">Find by Century</a>
                                                 </li>
@@ -458,59 +502,142 @@
             <h3 style="color: white;">What am I seeing?</h3>
             <h5 style="color: white;">Using the Record Treasury at the Public Record Office of Ireland stored seven centuries of Irish records, </h5>
             <h5 style="color: white;">you see the life span of people in the form of a timelines chart. </h5>
-            <!-- <h5 style="color: white;">Select the area with your cursor to zoom-in on the timeline.</h5> -->
+            
             <ul class="entry-breadcrumb">
             </ul>
         </div>
         <br> </br>
-        <!-- <div id="Search" class="searchbar">
-            <input type="text" class="searchbox" placeholder="Enter a query..." id="text"
-            style="width: 60%; height: 35px " />
-            <input type='hidden' id='textID' />
-        -->
         
         
-        <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
-        onClick="javascript: window.open('search.html?subj='+subject, '_self');">
-        Refresh
-    </sub>
-    <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
+        <button id="filter-button" class="button">Filter</button>
+        <div id="filter-container" class="filters">
+            <ul class="filters__list">
+                <li>
+                    <input id="f1" type="checkbox" />
+                    <label for="f1">Religion</label>
+                </li>
+                <li>
+                    <input id="f2" type="checkbox" />
+                    <label for="f2">Saints</label>
+                </li>
+                <li>
+                    <input id="f3" type="checkbox" />
+                    <label for="f3">Law</label>
+                </li>
+                <li>
+                    <input id="f4" type="checkbox" />
+                    <label for="f4">Literature</label>
+                </li>
+                <li>
+                    <input id="f5" type="checkbox" />
+                    <label for="f5">Gaelic & Norse Lords</label>
+                </li>
+                
+            </ul></div>
+            
+            
+            
+            <br></br>
+            
+            
+            <sub href="Submit_Button" input type="button" class="sub" id="btn" value="Submit"
+            onClick="
+            var div = document.getElementById('chart_div1');
+            while(div.firstChild){
+                div.removeChild(div.firstChild);
+            }
+            startFunction();">
+            Refresh
+        </sub>
         
-        onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+        
+        
+        <br> </br>
         
         <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
-            onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
             
-        </div>
-       
-        <br> </br>
-        <div id="chart_div" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
-        </div>
+            onClick="javascript: window.open('search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+            
+            <!-- <input type="button" class="searchbar-button" id="btn" value="Submit"
+                onClick="javascript: window.open('https://beyond-2022.github.io/search.html?subj=http://localhost:3030/Beyond_2022/query', '_self');" /> -->
+                
+            </div>
+            
+            <br> </br>
+            <div id="chart_div1" style="overflow-x: scroll; overflow-y: scroll; height: 100%; width: 100%;font-size: 11px; ">
+            </div> 
+            <!-- <div id = "chart_div">Explore</div> -->
+            
+            <script>
+                
+                var button = document.getElementById("filter-button");
+                var container = document.getElementById("filter-container");
+                var input = document.querySelectorAll("input");
+                
+                button.onclick = function (e) {
+                    e.stopPropagation();
+                    if (container.classList.contains("filters--active")) {
+                        container.classList.remove("filters--active");
+                    } else {
+                        container.classList.add("filters--active");
+                    }
+                };
+                
+                container.onclick = function (e) {
+                    e.stopPropagation();
+                };
+                
+                window.onclick = function () {
+                    container.classList.remove("filters--active");
+                };
+                
+                console.log(input);
+                
+                for (var i = 0; i < input.length; i++) {
+                    var currentInput = input[i];
+                    
+                    currentInput.onclick = function () {
+                        var isChecked = false;
+                        for (var j = 0; j < input.length; j++) {
+                            if (input[j].checked) {
+                                isChecked = true;
+                                break;
+                            }
+                        }
+                        
+                        if (isChecked) {
+                            button.classList.add("button--highlight");
+                        } else {
+                            button.classList.remove("button--highlight");
+                        }
+                    };
+                }
+                
+                
+                
+            </script>    
+            
+            <script src="assets/js/Nav.js"></script>
+            <script src="assets/js/Search.js"></script>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
+            <script src="https://d3js.org/d3.v5.min.js"></script>
+            <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+            <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+            <script src="https://d3js.org/d3-request.v1.min.js"></script>
+            
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+            crossorigin="anonymous"></script>
+            
+            <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
+            
+            
+            <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+            <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
+            <script type="text/javascript" src="assets/js/parallax.min.js"></script>
+            <script type="text/javascript" src="assets/js/main.js"></script>
+        </body>
         
+        </html>
         
-        
-        
-        <script src="assets/js/Nav.js"></script>
-        <script src="assets/js/Search.js"></script>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/d3-sparql@2.0.0/build/d3-sparql.min.js"></script>
-        <script src="https://d3js.org/d3.v5.min.js"></script>
-        <script src="https://d3js.org/d3-collection.v1.min.js"></script>
-        <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
-        <script src="https://d3js.org/d3-request.v1.min.js"></script>
-        
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
-        crossorigin="anonymous"></script>
-        
-        <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
-        
-        
-        <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="assets/js/lightgallery.min.js"></script>
-        <script type="text/javascript" src="assets/js/parallax.min.js"></script>
-        <script type="text/javascript" src="assets/js/main.js"></script>
-    </body>
-    
-    </html>
-    
