@@ -69,13 +69,14 @@
                 PREFIX vt: <https://kb.virtualtreasury.ie/>
                 PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
                 
-                select distinct ?normalized_uri ?person_name ?start_date ?end_date ?aoi_label ?type
+                select distinct ?normalized_uri ?person_name ?start_date ?end_date
+                ?aoi_label ?place
                 
                 where {
                     #Get Birth and Death events and time-spans for each person
                     ?birth rdf:type crm:E67_Birth;
                     crm:P4_has_time-span ?timespanB;
-                    crm:P98_brought_into_life ?person. 
+                    crm:P98_brought_into_life ?person.
                     ?death rdf:type crm:E69_Death;
                     crm:P4_has_time-span ?timespanD;
                     crm:P93_took_out_of_existence ?person.
@@ -89,15 +90,25 @@
                     #Get appellation (surname-forename) of person
                     ?person crm:P1_is_identified_by ?appellation.
                     ?appellation rdfs:label ?person_name.
-                    FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                    
+                    FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")).
+                    
                     
                     ?person vt_ont:DIB_area_of_interest ?aoi .
                     ?aoi crm:P1_is_identified_by ?aoi_app .
                     ?aoi_app rdfs:label ?aoi_label .
                     BIND ( STR ( ?person ) AS ?normalized_uri ).
-                } 
+                    
+                    #additional OPTIONAL pattern to get a person's locations
+                    OPTIONAL{
+                        ?place a crm:E53_Place.
+                        ?po crm:P67_refers_to ?place ;
+                        crm:P67_refers_to ?person .
+                    }
+                    
+                }
                 ORDER BY ?start_date
-                LIMIT 50 
+                LIMIT 50
                 
                 
                 
@@ -159,6 +170,7 @@
                     console.log("Start Year = "+start_year);
                     console.log("End Year = "+end_year); 
                     B2022_query = `
+                    
                     PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -167,13 +179,14 @@
                     PREFIX vt: <https://kb.virtualtreasury.ie/>
                     PREFIX vt_ont: <https://ont.virtualtreasury.ie/ontology#>
                     
-                    select distinct  ?person_name ?start_date ?end_date ?aoi_label
+                    select distinct ?normalized_uri ?person_name ?start_date ?end_date
+                    ?aoi_label ?place
                     
                     where {
                         #Get Birth and Death events and time-spans for each person
                         ?birth rdf:type crm:E67_Birth;
                         crm:P4_has_time-span ?timespanB;
-                        crm:P98_brought_into_life ?person. 
+                        crm:P98_brought_into_life ?person.
                         ?death rdf:type crm:E69_Death;
                         crm:P4_has_time-span ?timespanD;
                         crm:P93_took_out_of_existence ?person.
@@ -184,18 +197,32 @@
                         FILTER (?start_date > "`+start_year+`-01-01"^^xsd:date).
                         FILTER (?start_date <= "`+end_year+`-01-01"^^xsd:date).
                         
+
+
+                        #?person crm:P2_has_type <https://ont.virtualtreasury.ie/ontology#Female>.
                         
                         #Get appellation (surname-forename) of person
                         ?person crm:P1_is_identified_by ?appellation.
                         ?appellation rdfs:label ?person_name.
-                        FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")). 
+                        
+                        FILTER(CONTAINS(str(?appellation),"normalized-appellation-surname-forename")).
+                        
                         
                         ?person vt_ont:DIB_area_of_interest ?aoi .
                         ?aoi crm:P1_is_identified_by ?aoi_app .
                         ?aoi_app rdfs:label ?aoi_label .
-                        #FILTER (?aoi_label = 'Religion').
-                    } 
+                        BIND ( STR ( ?person ) AS ?normalized_uri ).
+                        
+                        #additional OPTIONAL pattern to get a person's locations
+                        OPTIONAL{
+                            ?place a crm:E53_Place.
+                            ?po crm:P67_refers_to ?place ;
+                            crm:P67_refers_to ?person .
+                        }
+                        
+                    }
                     ORDER BY ?start_date
+                    LIMIT 50
                     
                     `;
                     
@@ -420,7 +447,7 @@
                         //segment.target.__data__.labelVal = "<div class='fun'> <a href='search.html?subj=http://localhost:3030/Beyond_2022/query/0400-0500'>                    <img src='pic/Maps/Map_Ireland_5th.jpg' class='fun-img'/></a> <h3 class='profile-name'> 5th Century </h3> <span> Century </span> </div>";
                         // segment.target.refresh();
                         
-                         segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
+                        segment.target.__data__.labelVal = "<div id='mapid1' style='width: 600px; height: 400px;'></div>" ;
                         setTimeout(createMap, 1000);
                         // createMap();
                         
