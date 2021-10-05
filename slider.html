@@ -33,7 +33,6 @@
     <link rel="stylesheet" href="css/RangeSlider.min.css">
     <script src="assets/js/sweetalert.min.js"></script>
     
-    <!-- Style for slider bar -->
     <style>
         .swal-title {
             margin: 0px;
@@ -57,7 +56,6 @@
     </style>
     
     
-    <!-- Script genetating timeline chart -->
     <script>
         
         // Functionto generate the timeline chart
@@ -67,7 +65,6 @@
                 div.removeChild(div.firstChild);
             }
             
-            // Takes input from slider and appends 0 to year if required
             from = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
             to = ('0' + to).slice(-4);
             console.log("From = "+from);
@@ -79,6 +76,7 @@
             // Default SPARQL endpoint = http://virtuoso.adaptcentre.ie/sparql/
             // TO have localhost as an endpoint, add ?subj=http://localhost:3030/Beyond_2022/query to the URL
             
+            
             const queryString = window.location.search;										// returns: ?subj=...								
             const urlParams = new URLSearchParams(queryString);
             
@@ -88,7 +86,6 @@
             var b2022_URL;
             var B2022_explore_query;
             
-            // If endpoint = VIRTUOSO
             if(subject == "http://virtuoso.adaptcentre.ie/sparql/"){     // SPARQL endpoint = Virtuoso
                 b2022_URL =  'http://virtuoso.adaptcentre.ie/sparql/';    
                 B2022_explore_query = `
@@ -193,7 +190,13 @@
             
             
             
-            // Function to append numbers to duplicate names which prevents overlap of segments on timeline chart
+            function addMonth(date, month) 
+            {
+                var result = new Date(date);
+                result.setMonth(result.getMonth() + month);
+                return result;
+            }
+            
             function renameFiles(arr){
                 var count = {};
                 arr.forEach(function(x,i) {
@@ -245,7 +248,7 @@
                     data = sortedData;
                     
                     
-                    // Gets oName from the data and create a new array of the oName
+                    
                     function getFields(input, field) {
                         var output = [];
                         for (var i=0; i < input.length ; ++i)
@@ -254,9 +257,14 @@
                     }
                     
                     var data_names = getFields(data, "oName");
+                    // console.log(data_names);
                     var sorted_names = renameFiles(data_names);
+                    // console.log(sorted_names);
                     
-                    // Create an array with new names (after modifying duplicated names)
+                    // var data_person_names = getFields(data, "person_name");
+                    // // console.log(data_names);
+                    // var sorted_person_names = renameFiles(data_person_names);
+                    
                     result = data.map(function(currentObject, index) {
                         return {
                             aoi_label: currentObject.aoi_label,
@@ -275,7 +283,16 @@
                         };
                     });
                     console.log(result);
+                    // data.person_name = renameFiles(data.person_name);
                     data = result;
+                    
+                    // console.log(data);
+                    // data = sorted_data;
+                    // const sorted_data = renameFiles(data);
+                    
+                    
+                    
+                    
                     
                     
                     
@@ -297,9 +314,11 @@
                         //ie the bars in the timeline
                         function getSegmentsData(index)                 //called data.length times
                         {
-                            
+                            //console.log("getSegments called");
+                            //const nSegments = data.length,
+                            const nSegments = 1,                                                         
                             segMaxLength = Math.round(((new Date()) - MINTIME) / nSegments);        
-                            
+                            // console.log(segMaxLength);
                             let runLength = MINTIME;                                                        // earliest date in timeline?
                             return [...Array(nSegments).keys()].map(i => {
                                 start = data[index].start,                              //every entry has a start date
@@ -310,7 +329,8 @@
                                 return {
                                     timeRange: [start, end],        // shows start date to end date on hover
                                     val: data[index].pName,         // shows pName on hover
-                                    
+                                    //val: "Interests: "+ data[index].pName,         // shows pName on hover
+                                    // val: "Lifetime",         // shows pName on hover
                                     duartion: data[index].start + " - " + data[index].end
                                     //labelVal: is optional - only displayed in the labels
                                 };
@@ -319,11 +339,8 @@
                     }
                 }
                 
-                // Colours used by the chart
                 let scale = d3.scaleOrdinal(['#dff32a', '#78850a', '#70050a', '#0a8575', '#3867e7', '#f55e83', '#e4990f', '#e46f0f']);
                 
-                
-                // On Segment Click function
                 function segmentClick(segment) {
                     console.log(segment.target.__data__.label);
                     var segmentName = segment.target.__data__.label;
@@ -340,7 +357,7 @@
                 }
                 
                 
-                // Create timelines chart
+                
                 TimelinesChart()
                 .rightMargin(200)               // 200 pixels
                 .leftMargin(100)
@@ -359,8 +376,7 @@
             }); //end of B2022_Death_Query 
         }
         
-        
-        // Function to open a dialog box when time interval is selected
+        // Function to open a dialog box
         function open_dialog(from,to) {
             from_text = ('0' + from).slice(-4);  // Adds 0 in front of year if year is less than 999 i.e. 450 = 0450
             to_text = ('0' + to).slice(-4);
@@ -395,8 +411,6 @@
                 }
             });
         }
-        
-        //
     </script>
     
 </head>
@@ -424,7 +438,7 @@
                                     </li>
                                     <li><a href="about.html">About</a>
                                     </li>
-                                    <li><a href="contributor.html">Team</a>
+                                    <li><a href="contributor.html">Contributors</a>
                                     </li>
                                     <li><a href="something_fun.html">Find by Century</a>
                                     </li>
@@ -453,6 +467,19 @@
         
         <body>
             <div id="Home" class="panel" >
+                
+                
+                <!-- <body>
+                    <div class="container">
+                        <div class="col">
+                            
+                        </div>
+                        <div class="row">
+                            
+                        </div>
+                    </body>
+                </div> -->
+                
                 
                 <style>
                     body {
