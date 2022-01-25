@@ -73,7 +73,7 @@
             
             
             
-            // Default SPARQL endpoint = http://virtuoso.adaptcentre.ie/sparql/
+            // Default SPARQL endpoint = https://beyond2022.ie/blazegraph/namespace/b2022/sparql   (was: http://virtuoso.adaptcentre.ie/sparql/ )
             // TO have localhost as an endpoint, add ?subj=http://localhost:3030/Beyond_2022/query to the URL
             
             
@@ -134,8 +134,9 @@
                 
                 
             }
-            else{   // SPARQL endpoint = localhost:3030 and subject == null
-                b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+            else{   // SPARQL endpoint = beyond2022.ie/blazegraph/ and subject == null
+                // b2022_URL =  'http://localhost:3030/Beyond_2022/query';   //Use this to use localhost instead
+                b2022_URL =  'https://beyond2022.ie/blazegraph/namespace/b2022/sparql';
                 B2022_explore_query = `
                 
                 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
