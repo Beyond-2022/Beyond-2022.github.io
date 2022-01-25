@@ -40,7 +40,7 @@
         function startFunction(){
             
             var b2022_URL;
-            // var b2022_URL =  'http://localhost:9999/blazegraph/namespace/b2022/sparql';
+            // var b2022_URL =  'https://beyond2022.ie/blazegraph/namespace/b2022/sparql';
             
             const queryString = window.location.search;										// returns: ?subj=...								
             const urlParams = new URLSearchParams(queryString);
@@ -164,7 +164,8 @@
             //  else if(subject === "http://localhost:3030/Beyond_2022/query/0300-0399"){
                 else{    
                     
-                    b2022_URL =  'http://localhost:3030/Beyond_2022/query';
+                    // b2022_URL =  'http://localhost:3030/Beyond_2022/query';             // OLD default SPARQL endpoint
+                    b2022_URL =  'https://beyond2022.ie/blazegraph/namespace/b2022/sparql';
                     var start_year = subject.substring(40, 44);
                     var end_year = subject.substring(45, 49);
                     console.log("Start Year = "+start_year);
